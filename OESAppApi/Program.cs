@@ -28,7 +28,7 @@ public class Program
         builder.Logging.AddConsole();
         builder.Services.AddDbContext<OESAppApiDbContext>(options =>
         {
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("OESAppApi"));
             options.EnableSensitiveDataLogging();
             options.LogTo(Console.WriteLine);
         });
@@ -84,15 +84,11 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<OESAppApiDbContext>();
-            db.Database.EnsureCreated();
+            db.Database.Migrate();
         }
 
-        // Configure the HTTP request pipeline.
-        //if (app.Environment.IsDevelopment())
-        //{
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        //}
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
 
