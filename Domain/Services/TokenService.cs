@@ -22,7 +22,6 @@ public interface ITokenService
 
 public class TokenService : ITokenService
 {
-    private const string TokenSeparator = "|";
     private readonly IConfiguration _configuration;
 
     public TokenService(IConfiguration configuration)
