@@ -1,4 +1,5 @@
 ﻿using Domain.Entities.Courses;
+using Domain.Entities.Notes;
 using Domain.Entities.Sessions;
 using Domain.Entities.Tests;
 using Domain.Services;
@@ -69,6 +70,10 @@ public class CourseController : ControllerBase
     public async Task<IEnumerable<CourseItemResponse>> Get(int id)
     {
         List<Test> tests = await _context.Test.Where(t => t.CourseId == id).ToListAsync();
+        List<CourseItemResponse> notes = await _context.Note
+            .Where(n => n.CourseId == id)
+            .Select(n => n.ToItemResponse(nameof(Note), n.IsVisible))
+            .ToListAsync();
 
         List<CourseItemResponse> response = new();
         foreach (var test in tests)
@@ -76,6 +81,7 @@ public class CourseController : ControllerBase
             response.Add(test.ToItemResponse(nameof(Test), test.IsVisible));
         }
 
+        response.AddRange(notes);
         return response;
     }
 

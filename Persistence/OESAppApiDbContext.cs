@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.Courses;
 using Domain.Entities.Devices;
+using Domain.Entities.Notes;
 using Domain.Entities.Sessions;
 using Domain.Entities.Tests;
 using Domain.Entities.Tests.Answers;
@@ -24,6 +25,7 @@ public class OESAppApiDbContext : DbContext
     public DbSet<Session> Session { get; set; }
     public DbSet<TestSubmission> TestSubmission { get; set; }
     public DbSet<Answer> Answer { get; set; }
+    public DbSet<Note> Note { get; set; }
     public OESAppApiDbContext() { }
     public OESAppApiDbContext(DbContextOptions options) : base(options) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
