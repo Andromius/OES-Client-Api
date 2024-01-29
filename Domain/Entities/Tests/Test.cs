@@ -41,4 +41,5 @@ public class Test : CourseItem
     public string Password { get; set; }
     public int MaxAttempts { get; set; }
     public List<Question> Questions { get; set; } = new();
+    public List<TestSubmission> Submissions { get; set; } = new();
 }

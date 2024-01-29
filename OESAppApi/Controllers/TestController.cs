@@ -1,6 +1,7 @@
 ﻿using Domain.Entities.Courses;
 using Domain.Entities.Tests;
 using Domain.Entities.Tests.Answers;
+using Domain.Entities.Tests.Checkers;
 using Domain.Entities.Tests.Questions;
 using Domain.Entities.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -113,7 +114,7 @@ public class TestController : ControllerBase
     }
 
     [HttpPost("submit")]
-    public async Task<ActionResult> Submit([FromBody] TestSubmissionRequest submissionRequest)
+    public async Task<ActionResult<TestSubmissionResponse>> Submit([FromBody] TestSubmissionRequest submissionRequest)
     {
         string tokenString = Request.Headers["Authorization"].Single()!.Replace("Bearer ", "");
         var token = new JwtSecurityTokenHandler().ReadJwtToken(tokenString);
@@ -122,7 +123,16 @@ public class TestController : ControllerBase
         var newSubmission = _context.TestSubmission.Add(submissionRequest.ToSubmission(userId));
         await _context.SaveChangesAsync();
 
-        return Created($"api/Test/submissions/{newSubmission.Entity.Id}", "");
+        Test test = await _context.Test
+            .Include(t => t.Questions)
+            .ThenInclude(q => q.Options)
+            .SingleAsync(t => t.Id == newSubmission.Entity.TestId);
+        TestChecker.Check(test, newSubmission.Entity);
+
+        var updatedSubmission = _context.TestSubmission.Update(newSubmission.Entity);
+        await _context.SaveChangesAsync();
+
+        return Created($"api/Test/submissions/{updatedSubmission.Entity.Id}", updatedSubmission.Entity.ToResponse());
     }
 
     // DELETE api/<TestController>/5

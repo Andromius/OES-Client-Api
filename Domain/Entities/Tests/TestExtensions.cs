@@ -53,4 +53,17 @@ public static class TestExtensions
         List<Answer> answers = request.Answers.Select(ar => ar.ToAnswer(request.TestId)).ToList();
         return new(userId, request.TestId, answers, Common.ESubmissionStatus.Submitted, DateTime.UtcNow);
     }
+
+    public static TestSubmissionResponse ToResponse(this TestSubmission submission)
+    {
+        return new TestSubmissionResponse()
+        {
+            Id = submission.Id,
+            GradedAt = submission.GradedAt,
+            SubmittedAt = submission.SubmittedAt,
+            Status = submission.Status.ToString(),
+            TestId = submission.TestId,
+            TotalPoints = submission.TotalPoints
+        };
+    }
 }
