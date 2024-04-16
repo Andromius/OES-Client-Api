@@ -1,4 +1,5 @@
-﻿using Domain.Entities.Tests.Questions;
+﻿using Domain.Entities.Questions;
+using Domain.Entities.Tests.Submissions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,17 +9,15 @@ using System.Threading.Tasks;
 namespace Domain.Entities.Tests.Answers;
 public class Answer
 {
-    public Answer(int id, string text, int questionId, int questionTestId)
+    public Answer(int id, string text, int questionId)
     {
         Id = id;
         Text = text;
         QuestionId = questionId;
-        QuestionTestId = questionTestId;
     }
 
     public int Id { get; set; }
     public string Text { get; set; }
-    public int QuestionTestId { get; set; }
     public int QuestionId { get; set; }
     public Question Question { get; set; }
     public int TestSubmissionId { get; set; }

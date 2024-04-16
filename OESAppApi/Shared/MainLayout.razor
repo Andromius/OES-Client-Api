@@ -1,0 +1,34 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager _navigationManager
+
+<PageTitle>OES Admin Panel</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    <a class="btn btn-danger" @onclick="RedirectToLogout">
+                        Logout
+                    </a>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4 container-md">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private void RedirectToLogout()
+    {
+        _navigationManager.NavigateTo("identity/account/logout", true);
+    }
+}

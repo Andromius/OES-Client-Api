@@ -17,10 +17,8 @@ public static class NoteExtensions
             note.Name,
             note.Created,
             note.UserId,
-            note.IsVisible)
-        {
-            Data = note.Data
-        };
+            note.IsVisible,
+            note.Data);
     }
 
     public static Note ToNote(this NoteRequest request, User user, Course course)

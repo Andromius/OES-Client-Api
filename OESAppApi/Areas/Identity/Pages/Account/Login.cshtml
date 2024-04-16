@@ -1,0 +1,26 @@
+﻿@page
+@model OESAppApi.Pages.Account.LoginModel
+@attribute [AllowAnonymous]
+@{
+    ViewData["Title"] = "Login";
+    ViewData["BodyClass"] = "bg-login";
+}
+
+<div class="card bg-500 shadow w-50">
+    <div class="card-body">
+        <h2 class="d-flex card-title justify-content-center text-950">Login</h2>
+        <form method="post">
+            <div class="input-container mb-3">
+                <input asp-for="Credentials.Username" class="form-control bg-500" id="floatingInput">
+                <label for="floatingInput">Username</label>
+                <span asp-validation-for="Credentials.Username" class="text-white"></span>
+            </div>
+            <div class="input-container mb-3">
+                <input asp-for="Credentials.Password" type="password" class="form-control bg-500" id="floatingPassword">
+                <label for="floatingPassword">Password</label>
+                <span asp-validation-for="Credentials.Password" class="text-white"></span>
+            </div>
+            <button type="submit" id="login" name="login" class="btn btn-primary w-100">Login</button>
+        </form>
+    </div>
+</div>

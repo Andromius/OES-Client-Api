@@ -14,9 +14,9 @@ public static class CourseExtensions
         return new CourseResponse(c.Id, c.Name, c.ShortName, c.Description, c.Color);
     }
 
-    public static CourseItemResponse ToItemResponse(this CourseItem ci, string type, bool isVisible)
+    public static CourseItemResponse ToItemResponse(this CourseItem ci)
     {
-        return new CourseItemResponse(type, ci.Id, ci.Name, ci.Created, ci.UserId, isVisible);
+        return new CourseItemResponse(ci.CourseItemType.ToString(), ci.Id, ci.Name, ci.Created, ci.UserId, ci.IsVisible);
     }
 
     public static Course ToCourse(this CourseRequest c, CourseCodeGenerationService codeGenerationService)

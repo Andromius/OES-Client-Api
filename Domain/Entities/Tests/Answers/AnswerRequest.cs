@@ -5,9 +5,4 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Domain.Entities.Tests.Answers;
-public class AnswerRequest
-{
-    public int QuestionId { get; set; }
-    public int Id { get; set; }
-    public string Text { get; set; }
-}
+public record AnswerRequest(int QuestionId, int Id, string Text);

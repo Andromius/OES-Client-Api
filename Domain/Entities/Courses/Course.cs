@@ -1,4 +1,6 @@
-﻿using Domain.Entities.Tests;
+﻿using Domain.Entities.Homeworks;
+using Domain.Entities.Notes;
+using Domain.Entities.Tests;
 using Domain.Entities.Users;
 using System;
 using System.Collections.Generic;
@@ -39,6 +41,9 @@ public class Course
     public string Description { get; set; }
     public string? Color { get; set; }
     public string Code { get; set; }
-    public List<Test> Tests { get; set; } = new();
+    public List<CourseItem> CourseItems { get; set; } = new();
+    //public List<Test> Tests { get; set; } = new();
+    //public List<Note> Notes { get; set; } = new();
+    //public List<Homework> Homeworks { get; set; } = new();
     public List<CourseXUser> Users { get; set; } = new();
 }

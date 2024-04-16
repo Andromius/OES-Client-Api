@@ -8,8 +8,8 @@ namespace Domain.Entities.Users;
 
 public static class UserExtensions
 {
-    public static UserResponse ToResponse(this User u)
+    public static UserWithRoleResponse ToResponse(this User u)
     {
-        return new UserResponse(u.Id, u.FirstName, u.LastName, u.Username, u.Role);
+        return new UserWithRoleResponse(u.Id, u.FirstName, u.LastName, u.Username, u.Role);
     }
 }

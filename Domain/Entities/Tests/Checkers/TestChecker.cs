@@ -1,5 +1,7 @@
-﻿using Domain.Entities.Tests.Answers;
-using Domain.Entities.Tests.Questions;
+﻿using Domain.Entities.Questions;
+using Domain.Entities.Questions.Options;
+using Domain.Entities.Tests.Answers;
+using Domain.Entities.Tests.Submissions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,7 @@ public static class TestChecker
             List<Option> options = question.Options;
             switch(question.Type)
             {
-                case QuestionType.PickOne: CheckSingle(options, submission.Answers.Single(a => a.QuestionId == question.Id), ref totalPoints); break;
+                case QuestionType.PickOne: CheckSingle(options, submission.Answers.SingleOrDefault(a => a.QuestionId == question.Id), ref totalPoints); break;
                 case QuestionType.PickMany: CheckMultiple(options, submission.Answers.FindAll(a => a.QuestionId == question.Id), ref totalPoints); break;
             };
         }
@@ -30,8 +32,10 @@ public static class TestChecker
             Common.ESubmissionStatus.Checked : Common.ESubmissionStatus.Graded;
     }
 
-    private static void CheckSingle(List<Option> options, Answer answer, ref int totalPoints) 
-        => totalPoints += options.Single(o => o.Id == answer.Id).Points;
+    private static void CheckSingle(List<Option> options, Answer? answer, ref int totalPoints)
+    {
+        if (answer is not null) totalPoints += options.Single(o => o.Id == answer.Id).Points;
+    }
 
     private static void CheckMultiple(List<Option> options, List<Answer> answers, ref int totalPoints)
     {

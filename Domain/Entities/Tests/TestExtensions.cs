@@ -1,7 +1,9 @@
 ﻿using Domain.Entities.Courses;
+using Domain.Entities.Questions;
 using Domain.Entities.Tests.Answers;
-using Domain.Entities.Tests.Questions;
+using Domain.Entities.Tests.Submissions;
 using Domain.Entities.Users;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,29 +15,26 @@ namespace Domain.Entities.Tests;
 
 public static class TestExtensions
 {
-    public static Test ToTest(this TestRequest testRequest, User user, Course course)
+    public static Test ToTest(this TestRequest testRequest, int userId, int courseId)
     {
         Test t = new()
         {
             Name = testRequest.Name,
             Created = testRequest.Created,
             IsVisible = testRequest.IsVisible,
-            User = user,
-            UserId = user.Id,
-            Course = course,
-            CourseId = course.Id,
+            UserId = userId,
+            CourseId = courseId,
             Scheduled = testRequest.Scheduled,
             End = testRequest.End,
             Duration = testRequest.Duration,
             Password = testRequest.Password,
-            MaxAttempts = testRequest.MaxAttempts
+            MaxAttempts = testRequest.MaxAttempts,
+            Questions = testRequest.Questions.Select(q => q.ToQuestion()).ToList()
         };
-        t.Questions = testRequest.Questions.Select(q => q.ToQuestion()).ToList();
-        t.Questions.ForEach(q => q.Id = t.Questions.IndexOf(q));
         return t;
     }
 
-    public static TestResponse ToResponse(this Test test, CourseEnum who) => new(
+    public static TestResponse ToResponse(this Test test, CourseEnum courseParticipant) => new(
         nameof(Test),
         test.Id,
         test.Name,
@@ -46,11 +45,12 @@ public static class TestExtensions
         test.End,
         test.Duration,
         test.MaxAttempts,
-        test.Questions.Select(q => q.ToResponse(who)).ToList());
+        courseParticipant is CourseEnum.Teacher ? test.Password : null,
+        test.Questions.Select(q => q.ToResponse(courseParticipant)).ToList());
 
     public static TestSubmission ToSubmission(this TestSubmissionRequest request, int userId)
     {
-        List<Answer> answers = request.Answers.Select(ar => ar.ToAnswer(request.TestId)).ToList();
+        List<Answer> answers = request.Answers.Select(ar => ar.ToAnswer()).ToList();
         return new(userId, request.TestId, answers, Common.ESubmissionStatus.Submitted, DateTime.UtcNow);
     }
 
@@ -66,4 +66,10 @@ public static class TestExtensions
             TotalPoints = submission.TotalPoints
         };
     }
+
+    public static TestInfo ToInfo(this Test test, List<TestSubmission> submissions)
+        => new(test.Name, test.End, test.Duration, test.MaxAttempts, !test.Password.IsNullOrEmpty(), submissions.Select(s => s.ToAttempt()));
+
+    public static TestAttempt ToAttempt(this TestSubmission submission)
+        => new(submission.Reviews.Count > 0 ? submission.Reviews.Sum(r => r.Points) : (submission.TotalPoints ?? 0), submission.Status.ToString(), submission.SubmittedAt);
 }

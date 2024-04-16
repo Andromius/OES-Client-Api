@@ -1,0 +1,17 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width height=device-height" />
+    <link rel="stylesheet" href="~/css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/@(nameof(OESAppApi)).styles.css" />
+    <link href="~/css/auth.css" rel="stylesheet" />
+    <title>@ViewBag.Title</title>
+</head>
+<body class="@ViewData["BodyClass"]">
+    <div class="d-flex container-md justify-content-center align-items-center w-100 h-100">
+        @RenderBody()
+    </div>
+</body>
+</html>

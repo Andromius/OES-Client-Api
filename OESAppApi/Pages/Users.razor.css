@@ -1,0 +1,40 @@
+﻿.grid {
+    min-width: 100%;
+    width: 0;
+    overflow-x: auto;
+    display: block !important;
+}
+
+    .grid ::deep table {
+        min-width: 100%;
+    }
+
+::deep table tbody td {
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 0;
+    text-overflow: ellipsis;
+}
+
+.ico-btn {
+    background-color: transparent;
+    border:none;
+    width: 25px;
+    height: 25px;
+}
+
+.oi-wrench {
+    color: rgb(13, 110, 253);
+}
+
+.oi-x {
+    color: rgb(220, 53, 69);
+}
+
+#itemsPerPage {
+    width: 70px;
+}
+
+#searchInput {
+    min-width: 70px;
+}

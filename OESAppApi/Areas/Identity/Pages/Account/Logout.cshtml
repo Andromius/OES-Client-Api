@@ -1,0 +1,15 @@
+﻿@page
+@attribute [AllowAnonymous]
+@model OESAppApi.Areas.Identity.Pages.Account.LogoutModel
+@{
+    ViewData["Title"] = "Logout";
+    ViewData["BodyClass"] = "bg-login";
+}
+
+<div class="card bg-500 shadow">
+    <div class="card-body">
+        <h2 class="d-flex card-title justify-content-center text-950">Logout</h2>
+        <p class="d-flex text-950 justify-content-center align-items-center">You've been logged out!</p>
+        <a class="btn btn-primary w-100" href="~/identity/account/login">Back to login</a>
+    </div>
+</div>

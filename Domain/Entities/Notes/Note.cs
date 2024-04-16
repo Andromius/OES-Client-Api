@@ -13,7 +13,7 @@ public class Note : CourseItem
     {
     }
 
-    public Note(int id, string name, DateTime created, bool isVisible, int userId, int courseId) : base(id, name, created, isVisible, userId, courseId)
+    public Note(string name, DateTime created, bool isVisible, int userId, int courseId) : base(name, created, isVisible, userId, courseId)
     {
     }
 

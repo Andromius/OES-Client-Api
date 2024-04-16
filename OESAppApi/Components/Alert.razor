@@ -1,0 +1,32 @@
+﻿<div class="alert alert-@Type.ToString().ToLower() alert-dismissible @alertClass @Class" role="alert">
+	<div>@ChildContent</div>
+	<button type="button" class="btn-close" @onclick=Close></button>
+</div>
+
+@code {
+	public enum AlertType
+	{
+		Success,
+		Danger,
+		Warning,
+		Info
+	}
+
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
+	[Parameter]
+	public AlertType Type { get; set; }
+	[Parameter]
+	public string Class { get; set; }
+	private string alertClass = "d-none";
+
+	public void Show()
+	{
+		alertClass = string.Empty;
+	}
+
+	private void Close()
+	{
+		alertClass = "d-none";
+	}
+}

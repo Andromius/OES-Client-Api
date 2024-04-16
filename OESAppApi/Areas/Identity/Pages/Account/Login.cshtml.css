@@ -1,0 +1,36 @@
+﻿.form-control:focus {
+    border-color: rgba(255, 0, 0, 1); /* Change the border color */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5); /* Change the box-shadow color */
+}
+
+.form-control {
+    border-color: rgba(255, 0, 0, 1);
+}
+
+.input-container {
+    position: relative;
+    box-sizing: inherit;
+}
+
+    .input-container label {
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        padding: 0 5px;
+        background: var(--background-500);
+        color: #fff;
+        font-size: small;
+    }
+
+.card.bg-500 {
+    background-color: var(--background-500);
+    box-shadow: inherit;
+}
+
+input, select, textarea {
+    color: var(--text-950);
+}
+
+h2 {
+    font-weight: bold;
+}

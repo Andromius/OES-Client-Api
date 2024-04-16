@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 namespace Domain.Entities.Tests.Answers;
 public static class AnswerExtensions
 {
-    public static Answer ToAnswer(this AnswerRequest request, int testId) => new(request.Id, request.Text, request.QuestionId, testId);
+    public static Answer ToAnswer(this AnswerRequest request) => new(request.Id, request.Text, request.QuestionId);
 }

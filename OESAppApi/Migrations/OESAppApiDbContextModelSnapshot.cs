@@ -17,7 +17,7 @@ namespace OESAppApi.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.11")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -93,12 +93,12 @@ namespace OESAppApi.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("CourseItemType")
+                        .HasColumnType("integer")
+                        .HasColumnName("CourseItemType");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("boolean");
@@ -112,11 +112,13 @@ namespace OESAppApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CourseId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("CourseItem");
 
-                    b.HasDiscriminator<string>("Discriminator").HasValue("CourseItem");
+                    b.HasDiscriminator<int>("CourseItemType").HasValue(3);
 
                     b.UseTphMappingStrategy();
                 });
@@ -223,6 +225,267 @@ namespace OESAppApi.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Entities.Homeworks.HomeworkScore", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HomeworkId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "HomeworkId");
+
+                    b.HasIndex("HomeworkId");
+
+                    b.ToTable("HomeworkScore");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Homeworks.HomeworkSubmission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<int>("HomeworkId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HomeworkId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("HomeworkSubmission");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Homeworks.HomeworkSubmissionAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("File")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SubmissionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.ToTable("HomeworkSubmissionAttachment");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Questions.Options.Option", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id", "QuestionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("Options");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            QuestionId = 1,
+                            Points = 3,
+                            Text = "Opt A"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            QuestionId = 1,
+                            Points = 0,
+                            Text = "Opt B"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            QuestionId = 1,
+                            Points = 0,
+                            Text = "Opt C"
+                        },
+                        new
+                        {
+                            Id = 1,
+                            QuestionId = 2,
+                            Points = 3,
+                            Text = "Opt A"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            QuestionId = 2,
+                            Points = -3,
+                            Text = "Opt B"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            QuestionId = 2,
+                            Points = 3,
+                            Text = "Opt C"
+                        },
+                        new
+                        {
+                            Id = 1,
+                            QuestionId = 4,
+                            Points = 1,
+                            Text = "Yes"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            QuestionId = 4,
+                            Points = 0,
+                            Text = "No"
+                        },
+                        new
+                        {
+                            Id = 1,
+                            QuestionId = 5,
+                            Points = 2,
+                            Text = "Of course"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            QuestionId = 5,
+                            Points = -2,
+                            Text = "Of course not"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            QuestionId = 5,
+                            Points = 2,
+                            Text = "Jebu ti mamu"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            QuestionId = 5,
+                            Points = 0,
+                            Text = "Hele cudlik!!!"
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.Questions.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("Question");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "What is hello?",
+                            ItemId = 1,
+                            Name = "Question 1",
+                            Points = 3,
+                            Type = "pick-one"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Pick many question.",
+                            ItemId = 1,
+                            Name = "Question 2",
+                            Points = 6,
+                            Type = "pick-many"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Write hello.",
+                            ItemId = 1,
+                            Name = "Question 3",
+                            Points = 10,
+                            Type = "open"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Description = "Write hello.",
+                            ItemId = 2,
+                            Name = "Question YESNO",
+                            Points = 1,
+                            Type = "pick-one"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Description = "Kaja je dobry programator",
+                            ItemId = 2,
+                            Name = "Question YESNO",
+                            Points = 4,
+                            Type = "pick-many"
+                        });
+                });
+
             modelBuilder.Entity("Domain.Entities.Sessions.Session", b =>
                 {
                     b.Property<string>("Token")
@@ -261,157 +524,66 @@ namespace OESAppApi.Migrations
                     b.Property<int>("TestSubmissionId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("QuestionTestId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id", "QuestionId", "TestSubmissionId");
 
-                    b.HasIndex("TestSubmissionId");
+                    b.HasIndex("QuestionId");
 
-                    b.HasIndex("QuestionId", "QuestionTestId");
+                    b.HasIndex("TestSubmissionId");
 
                     b.ToTable("Answer");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tests.Questions.Option", b =>
+            modelBuilder.Entity("Domain.Entities.Tests.Answers.AnswerSimilarity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SubmittorId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ChallengerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SubmissionId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Similarity")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("QuestionId", "SubmittorId", "ChallengerId", "SubmissionId");
+
+                    b.HasIndex("ChallengerId");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.HasIndex("SubmittorId");
+
+                    b.ToTable("AnswerSimilarity");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Tests.Submissions.Reviews.TestSubmissionReview", b =>
+                {
+                    b.Property<int>("SubmissionId")
                         .HasColumnType("integer");
 
                     b.Property<int>("QuestionId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("QuestionTestId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Points")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.HasKey("SubmissionId", "QuestionId");
 
-                    b.HasKey("Id", "QuestionId", "QuestionTestId");
+                    b.HasIndex("QuestionId");
 
-                    b.HasIndex("QuestionId", "QuestionTestId");
-
-                    b.ToTable("Options");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            QuestionId = 1,
-                            QuestionTestId = 1,
-                            Points = 3,
-                            Text = "Opt A"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            QuestionId = 1,
-                            QuestionTestId = 1,
-                            Points = 0,
-                            Text = "Opt B"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            QuestionId = 1,
-                            QuestionTestId = 1,
-                            Points = 0,
-                            Text = "Opt C"
-                        },
-                        new
-                        {
-                            Id = 1,
-                            QuestionId = 2,
-                            QuestionTestId = 1,
-                            Points = 3,
-                            Text = "Opt A"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            QuestionId = 2,
-                            QuestionTestId = 1,
-                            Points = -3,
-                            Text = "Opt B"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            QuestionId = 2,
-                            QuestionTestId = 1,
-                            Points = 3,
-                            Text = "Opt C"
-                        });
+                    b.ToTable("TestSubmissionReview");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tests.Questions.Question", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TestId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id", "TestId");
-
-                    b.HasIndex("TestId");
-
-                    b.ToTable("Question");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            TestId = 1,
-                            Description = "What is hello?",
-                            Name = "Question 1",
-                            Points = 3,
-                            Type = "pick-one"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            TestId = 1,
-                            Description = "Pick many question.",
-                            Name = "Question 2",
-                            Points = 6,
-                            Type = "pick-many"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            TestId = 1,
-                            Description = "Write hello.",
-                            Name = "Question 3",
-                            Points = 10,
-                            Type = "open"
-                        });
-                });
-
-            modelBuilder.Entity("Domain.Entities.Tests.TestSubmission", b =>
+            modelBuilder.Entity("Domain.Entities.Tests.Submissions.TestSubmission", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -483,7 +655,7 @@ namespace OESAppApi.Migrations
                             Id = 1,
                             FirstName = "Admin",
                             LastName = "Doe",
-                            Password = "$2a$11$3kBuqYM3txGMmAVJUGMXwuCbIzWyBgZQ/5XIGwQBtpZKJAJZg5Mou",
+                            Password = "$2a$11$FZZSQ5J1o8gP2Zs99/nB9elrQQw/d4gv3BvUA9smUmH/8pVQf6LdS",
                             Role = 0,
                             Username = "admin"
                         },
@@ -492,7 +664,7 @@ namespace OESAppApi.Migrations
                             Id = 2,
                             FirstName = "Teacher",
                             LastName = "Doe",
-                            Password = "$2a$11$yHSUNzk3NAVN3s5XHSGGZuzs4RXh6nnbKU8DLVg2gtbWlBvsIFXKC",
+                            Password = "$2a$11$Gnsr5vx9JbE0/w.pk9Nj.eWMZV7K4iQ4/wZ2beqxonCzhaKU2IugS",
                             Role = 1,
                             Username = "teacher"
                         },
@@ -501,7 +673,7 @@ namespace OESAppApi.Migrations
                             Id = 3,
                             FirstName = "Student",
                             LastName = "Doe",
-                            Password = "$2a$11$edK2/IF.xzIA/z8/TjvRJ.gac39Ma4Ie52JkPGc7uYNnzwLqzJaI2",
+                            Password = "$2a$11$aFHUqATst8eVBk5PDk/GceFfeGvjTrWBv/TYbmSbhFh.ALZOfW2OS",
                             Role = 2,
                             Username = "student"
                         },
@@ -510,7 +682,7 @@ namespace OESAppApi.Migrations
                             Id = 4,
                             FirstName = "Alice",
                             LastName = "Doe",
-                            Password = "$2a$11$.QzRELeVg39tAkJceup5fu/T3lv/oQTcZaMhKC77oryLI4860FZyO",
+                            Password = "$2a$11$unEXhaGMQDe.7tTNcWG/bOfOBs66xPQYg1VG5ssoUfOPOzv6E.idy",
                             Role = 1,
                             Username = "teachMaster"
                         },
@@ -519,7 +691,7 @@ namespace OESAppApi.Migrations
                             Id = 5,
                             FirstName = "Bob",
                             LastName = "Doe",
-                            Password = "$2a$11$VX.66lQMROHE02mKTlHjSurAl00ZN.ZrMpjqswXQLABnooxwSGyjS",
+                            Password = "$2a$11$12MATReeP0yTVQ7KBH9fEeGx3vFkM2AEveedjkabesCp9cB42EMqe",
                             Role = 1,
                             Username = "eduGuru"
                         },
@@ -528,7 +700,7 @@ namespace OESAppApi.Migrations
                             Id = 6,
                             FirstName = "Charlie",
                             LastName = "Doe",
-                            Password = "$2a$11$3yGg0VMkhboq5ZkjPKPgl.8SkZVguDkd2uGI/kf0u5mRK9wr6orhS",
+                            Password = "$2a$11$pUW8JUKWwiPgkmLzrEGIKe1mS0LCzQqS/LR6kac5wuXICyPxgR8bC",
                             Role = 1,
                             Username = "profLearner"
                         },
@@ -537,7 +709,7 @@ namespace OESAppApi.Migrations
                             Id = 7,
                             FirstName = "David",
                             LastName = "Doe",
-                            Password = "$2a$11$4Y9wf1hplDb/IznK6uZGqO5T86ZYNrDR17HLzqCNDCIXaFCPgD5g6",
+                            Password = "$2a$11$33NW6G34Rjz5ssMplGJ1FeqSIJkd7INohxVp4cVqx4EfZQwmtuBHG",
                             Role = 1,
                             Username = "learnSculptor"
                         },
@@ -546,7 +718,7 @@ namespace OESAppApi.Migrations
                             Id = 8,
                             FirstName = "Ella",
                             LastName = "Doe",
-                            Password = "$2a$11$V3//JercN529msTKF1VJL.CfnNx1WepexmN9RiAqDA4d3lV.9h6fO",
+                            Password = "$2a$11$gLRi31X3/0vetn6.pg5w4OGkwDudg8D/hn0Jl18olYtDUcbLJxKQu",
                             Role = 1,
                             Username = "knowledgeNinja"
                         },
@@ -555,7 +727,7 @@ namespace OESAppApi.Migrations
                             Id = 9,
                             FirstName = "Frank",
                             LastName = "Doe",
-                            Password = "$2a$11$pWqLofFYPWXiA0VNuTribOSX9PdvY8Wba7P7f4bi/zLFA9.lWIfai",
+                            Password = "$2a$11$6xH476tdnWpLKaUfmO74d.jlvXaijkk4cvR5lA/xEwvD1aTQB0tm.",
                             Role = 1,
                             Username = "scholarSavvy"
                         },
@@ -564,7 +736,7 @@ namespace OESAppApi.Migrations
                             Id = 10,
                             FirstName = "Grace",
                             LastName = "Doe",
-                            Password = "$2a$11$UIhEYJTu87fpC9rnX.PAcOY/OPdhbPqrZ81XwMGYxvK3k57XAIAIO",
+                            Password = "$2a$11$RYI91ofW2s.utD8SE/q75O/XnueHgNM3AL4lI.gMZ7PB2XKEJ5HgO",
                             Role = 1,
                             Username = "eduMaestro"
                         },
@@ -573,7 +745,7 @@ namespace OESAppApi.Migrations
                             Id = 11,
                             FirstName = "Hannah",
                             LastName = "Smith",
-                            Password = "$2a$11$NETNrKtirlF7cNk3nmYItePEWF.1/IxmvmKpCTcHJZclz8l7O0mAG",
+                            Password = "$2a$11$sfNqPRKYtKrYVD7pBn4lMemE0epZTbsLVtb5hEpTIIvIBbdU/E52e",
                             Role = 1,
                             Username = "brainyTutor"
                         },
@@ -582,10 +754,29 @@ namespace OESAppApi.Migrations
                             Id = 12,
                             FirstName = "Isaac",
                             LastName = "Johnson",
-                            Password = "$2a$11$oMM16DItBt.RxdicYl59wOBVZRYFfokBrMYtOpJT69HJ4EprFWTU.",
+                            Password = "$2a$11$fq28j3rO7zMNmJ5DiDmBieRTg4Ks782Im6SrnjrkNkFm5CvTFz5cq",
                             Role = 1,
                             Username = "wisdomWhiz"
                         });
+                });
+
+            modelBuilder.Entity("Domain.Entities.Homeworks.Homework", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Courses.CourseItem");
+
+                    b.Property<DateTime>("End")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Scheduled")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Task")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasDiscriminator().HasValue(2);
                 });
 
             modelBuilder.Entity("Domain.Entities.Notes.Note", b =>
@@ -596,9 +787,36 @@ namespace OESAppApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasIndex("CourseId");
+                    b.HasDiscriminator().HasValue(1);
+                });
 
-                    b.HasDiscriminator().HasValue("Note");
+            modelBuilder.Entity("Domain.Entities.Quizzes.Quiz", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Courses.CourseItem");
+
+                    b.Property<DateTime>("End")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Scheduled")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasDiscriminator().HasValue(4);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 2,
+                            CourseId = 3,
+                            CourseItemType = 0,
+                            Created = new DateTime(2024, 4, 14, 23, 0, 56, 970, DateTimeKind.Utc).AddTicks(7898),
+                            IsVisible = true,
+                            Name = "AMAZING QUIZ",
+                            UserId = 1,
+                            End = new DateTime(2024, 4, 15, 2, 0, 56, 970, DateTimeKind.Utc).AddTicks(7909),
+                            Scheduled = new DateTime(2024, 4, 14, 23, 30, 56, 970, DateTimeKind.Utc).AddTicks(7904)
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Tests.Test", b =>
@@ -609,6 +827,7 @@ namespace OESAppApi.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("End")
+                        .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("MaxAttempts")
@@ -619,36 +838,51 @@ namespace OESAppApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("Scheduled")
+                        .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasIndex("CourseId");
-
-                    b.HasDiscriminator().HasValue("Test");
+                    b.HasDiscriminator().HasValue(0);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
                             CourseId = 3,
-                            Created = new DateTime(2024, 1, 29, 14, 18, 59, 804, DateTimeKind.Utc).AddTicks(2311),
+                            CourseItemType = 0,
+                            Created = new DateTime(2024, 4, 14, 23, 0, 56, 971, DateTimeKind.Utc).AddTicks(4148),
                             IsVisible = true,
                             Name = "Write 100x hello!",
                             UserId = 1,
                             Duration = 1800,
-                            End = new DateTime(2024, 1, 29, 17, 18, 59, 804, DateTimeKind.Utc).AddTicks(2316),
+                            End = new DateTime(2024, 4, 15, 2, 0, 56, 971, DateTimeKind.Utc).AddTicks(4157),
                             MaxAttempts = 3,
                             Password = "password",
-                            Scheduled = new DateTime(2024, 1, 29, 14, 48, 59, 804, DateTimeKind.Utc).AddTicks(2312)
+                            Scheduled = new DateTime(2024, 4, 14, 23, 30, 56, 971, DateTimeKind.Utc).AddTicks(4151)
                         });
+                });
+
+            modelBuilder.Entity("Domain.Entities.UserQuizzes.UserQuiz", b =>
+                {
+                    b.HasBaseType("Domain.Entities.Courses.CourseItem");
+
+                    b.HasDiscriminator().HasValue(5);
                 });
 
             modelBuilder.Entity("Domain.Entities.Courses.CourseItem", b =>
                 {
+                    b.HasOne("Domain.Entities.Courses.Course", "Course")
+                        .WithMany("CourseItems")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Domain.Entities.Users.User", "User")
                         .WithMany("CourseItems")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Course");
 
                     b.Navigation("User");
                 });
@@ -672,6 +906,77 @@ namespace OESAppApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Homeworks.HomeworkScore", b =>
+                {
+                    b.HasOne("Domain.Entities.Homeworks.Homework", "Homework")
+                        .WithMany("Scores")
+                        .HasForeignKey("HomeworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Users.User", "User")
+                        .WithMany("HomeworkScores")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Homework");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Homeworks.HomeworkSubmission", b =>
+                {
+                    b.HasOne("Domain.Entities.Homeworks.Homework", "Homework")
+                        .WithMany("Submissions")
+                        .HasForeignKey("HomeworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Users.User", "User")
+                        .WithMany("HomeworkSubmissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Homework");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Homeworks.HomeworkSubmissionAttachment", b =>
+                {
+                    b.HasOne("Domain.Entities.Homeworks.HomeworkSubmission", "Submission")
+                        .WithMany("Attachments")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Submission");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Questions.Options.Option", b =>
+                {
+                    b.HasOne("Domain.Entities.Questions.Question", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Questions.Question", b =>
+                {
+                    b.HasOne("Domain.Entities.Courses.CourseItem", "Item")
+                        .WithMany("Questions")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+                });
+
             modelBuilder.Entity("Domain.Entities.Sessions.Session", b =>
                 {
                     b.HasOne("Domain.Entities.Devices.DevicePlatform", "DevicePlatform")
@@ -693,15 +998,15 @@ namespace OESAppApi.Migrations
 
             modelBuilder.Entity("Domain.Entities.Tests.Answers.Answer", b =>
                 {
-                    b.HasOne("Domain.Entities.Tests.TestSubmission", "TestSubmission")
+                    b.HasOne("Domain.Entities.Questions.Question", "Question")
                         .WithMany("Answers")
-                        .HasForeignKey("TestSubmissionId")
+                        .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Tests.Questions.Question", "Question")
-                        .WithMany()
-                        .HasForeignKey("QuestionId", "QuestionTestId")
+                    b.HasOne("Domain.Entities.Tests.Submissions.TestSubmission", "TestSubmission")
+                        .WithMany("Answers")
+                        .HasForeignKey("TestSubmissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -710,29 +1015,61 @@ namespace OESAppApi.Migrations
                     b.Navigation("TestSubmission");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tests.Questions.Option", b =>
+            modelBuilder.Entity("Domain.Entities.Tests.Answers.AnswerSimilarity", b =>
                 {
-                    b.HasOne("Domain.Entities.Tests.Questions.Question", "Question")
-                        .WithMany("Options")
-                        .HasForeignKey("QuestionId", "QuestionTestId")
+                    b.HasOne("Domain.Entities.Users.User", "Challenger")
+                        .WithMany()
+                        .HasForeignKey("ChallengerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Questions.Question", "Question")
+                        .WithMany("AnswerSimilarities")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Tests.Submissions.TestSubmission", "Submission")
+                        .WithMany()
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Users.User", "Submittor")
+                        .WithMany()
+                        .HasForeignKey("SubmittorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Challenger");
+
+                    b.Navigation("Question");
+
+                    b.Navigation("Submission");
+
+                    b.Navigation("Submittor");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Tests.Submissions.Reviews.TestSubmissionReview", b =>
+                {
+                    b.HasOne("Domain.Entities.Questions.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Tests.Submissions.TestSubmission", "Submission")
+                        .WithMany("Reviews")
+                        .HasForeignKey("SubmissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Question");
+
+                    b.Navigation("Submission");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tests.Questions.Question", b =>
-                {
-                    b.HasOne("Domain.Entities.Tests.Test", "Test")
-                        .WithMany("Questions")
-                        .HasForeignKey("TestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Test");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Tests.TestSubmission", b =>
+            modelBuilder.Entity("Domain.Entities.Tests.Submissions.TestSubmission", b =>
                 {
                     b.HasOne("Domain.Entities.Tests.Test", "Test")
                         .WithMany("Submissions")
@@ -751,43 +1088,37 @@ namespace OESAppApi.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Notes.Note", b =>
-                {
-                    b.HasOne("Domain.Entities.Courses.Course", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Tests.Test", b =>
-                {
-                    b.HasOne("Domain.Entities.Courses.Course", "Course")
-                        .WithMany("Tests")
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-                });
-
             modelBuilder.Entity("Domain.Entities.Courses.Course", b =>
                 {
-                    b.Navigation("Tests");
+                    b.Navigation("CourseItems");
 
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tests.Questions.Question", b =>
+            modelBuilder.Entity("Domain.Entities.Courses.CourseItem", b =>
                 {
+                    b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Homeworks.HomeworkSubmission", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Questions.Question", b =>
+                {
+                    b.Navigation("AnswerSimilarities");
+
+                    b.Navigation("Answers");
+
                     b.Navigation("Options");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tests.TestSubmission", b =>
+            modelBuilder.Entity("Domain.Entities.Tests.Submissions.TestSubmission", b =>
                 {
                     b.Navigation("Answers");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Domain.Entities.Users.User", b =>
@@ -796,13 +1127,22 @@ namespace OESAppApi.Migrations
 
                     b.Navigation("Courses");
 
+                    b.Navigation("HomeworkScores");
+
+                    b.Navigation("HomeworkSubmissions");
+
                     b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Homeworks.Homework", b =>
+                {
+                    b.Navigation("Scores");
+
+                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Tests.Test", b =>
                 {
-                    b.Navigation("Questions");
-
                     b.Navigation("Submissions");
                 });
 #pragma warning restore 612, 618

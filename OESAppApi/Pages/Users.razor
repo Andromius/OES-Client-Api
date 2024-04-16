@@ -1,0 +1,218 @@
+﻿@page "/users"
+@using Domain.Entities.Users
+@using Persistence
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Domain.Services
+@inject OESAppApiDbContext context
+<PageTitle>Users</PageTitle>
+<h1>Users</h1>
+
+<Modal @ref="@Modal" Title="Add user" Centered=true>
+    @* <EditForm Model="UserToAdd"></EditForm> *@
+    <div class="mb-3">
+        <label for="fname" class="form-label">First name</label>
+        <input type="text" class="form-control" id="fname" placeholder="John" @bind="UserToAdd.FirstName" @bind:event="oninput">
+    </div>
+    <div class="mb-3">
+        <label for="lname" class="form-label">Last name</label>
+        <input type="text" class="form-control" id="lname" placeholder="John" @bind="UserToAdd.LastName" @bind:event="oninput">
+    </div>
+    <div class="mb-3">
+        <label for="uname" class="form-label">Username</label>
+        <input type="text" class="form-control" id="uname" placeholder="John" @bind="UserToAdd.Username" @bind:event="oninput">
+    </div>
+    <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select id="role" class="form-select" @bind="UserToAdd.Role" @bind:event="oninput">
+            @foreach (var role in Enum.GetValues(typeof(UserRole)))
+            {
+                <option>@role</option>
+            }
+        </select>
+    </div>
+    <div class="mb-5">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="password" @bind="UserToAdd.Password" @bind:event="oninput" readonly required>
+            <button type="button" class="btn btn-primary" @onclick=GeneratePassword>Generate password</button>
+        </div>
+    </div>
+    <button type="button" class="btn btn-success float-end" @onclick='async () => await AddUserAsync()'>Add user</button>
+</Modal>
+
+<Modal @ref="@RemoveModal" Title="Remove user" Centered=true>
+    <p>Are you sure you want to remove user: @SelectedUser?.FirstName @SelectedUser?.LastName (@SelectedUser?.Username)</p>
+    <button type="button" class="btn btn-danger float-end" @onclick='async () => await RemoveUserAsync()'>Remove</button>
+</Modal>
+
+<div class="row row-cols-3">
+    <div class="col col-3">
+        <input id="searchInput" type="search" class="form-control" @bind="nameFilter" @bind:event="oninput" placeholder="Search"/>
+    </div>
+    <div class="col col-2">
+        <select id="itemsPerPage" class="form-select" @bind="@pagination.ItemsPerPage">
+            <option>5</option>
+            <option>10</option>
+            <option>15</option>
+            <option>20</option>
+            <option>25</option>
+            <option value="@pagination.TotalItemCount">All</option>
+        </select>
+    </div>
+    <div class="col col-7 align-content-end">
+        <button type="button" class="btn btn-primary float-end" @onclick='() => OpenModal(Modal)'>
+            Add user
+        </button>
+    </div>
+</div>
+
+<Alert @ref="@AlertComponent" Type="@Alert.Item1" Class="mt-2">
+    @Alert.Item2
+</Alert>
+
+<div class="grid">
+    <QuickGrid Items="@FilteredUsers" Pagination="@pagination" @ref="@Grid" Class="table table-striped table-bordered table-hover mt-2">
+        <PropertyColumn Property="@(u => u.Id)" Sortable="true" InitialSortDirection="SortDirection.Descending"/>
+        <PropertyColumn Property="@(u => u.FirstName)" Title="Name" Sortable="true"/>
+        <PropertyColumn Property="@(u => u.LastName)" Title="Surname" Sortable="true"/>
+        <PropertyColumn Property="@(u => u.Username)" Sortable="true"/>
+        <PropertyColumn Property="@(u => u.Role)" Sortable="true" Title="System role" />
+        <TemplateColumn Title="Actions" Class="table-actions">
+            <button class="ico-btn" @onclick='() => { SelectedUser = context; Modal.Open(); }'>
+                <span class="oi oi-wrench"></span>
+            </button>
+            <button class="ico-btn" @onclick='() => { SelectedUser = context; RemoveModal.Open(); }'>
+                <span class="oi oi-x"></span>
+            </button>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+<Paginator State="@pagination">
+</Paginator>
+
+
+
+@code {
+    private Tuple<Alert.AlertType, string> Alert { get; set; }
+    private Alert AlertComponent { get; set; }
+    private QuickGrid<User> Grid { get; set; }
+    private Modal Modal { get; set; }
+    private Modal RemoveModal { get; set; }
+    private string ModalTitle;
+    private User UserToAdd { get; set; }
+    private User SelectedUser { get; set; }
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private IQueryable<User>? userQueryable;
+    private string nameFilter;
+    private bool isEdit = false;
+    IQueryable<User> FilteredUsers
+    {
+        get
+        {
+            var result = userQueryable;
+
+            if (!string.IsNullOrEmpty(nameFilter))
+            {
+                nameFilter = nameFilter.ToLower();
+                result = result?.Where(c => 
+                    c.FirstName.ToLower().Contains(nameFilter) ||
+                    c.LastName.ToLower().Contains(nameFilter) ||
+                    c.Username.ToLower().Contains(nameFilter)
+                );
+            }
+
+            return result;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        userQueryable = context.User;
+        Alert = new(Components.Alert.AlertType.Success, "");
+        UserToAdd = new();
+    }
+
+    private void OpenModal(Modal? modal)
+    {
+        modal?.Open();
+    }
+
+    private async Task RemoveUserAsync()
+    {
+        context.User.Remove(SelectedUser);
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch
+        {
+            Alert = new(Components.Alert.AlertType.Danger, "Something went wrong");
+            await Grid.RefreshDataAsync();
+            return;
+        }
+
+        await Grid.RefreshDataAsync();
+        Alert = new(Components.Alert.AlertType.Success, $"Successfully deleted {SelectedUser.FirstName} {SelectedUser.LastName} ({SelectedUser.Username})");
+        AlertComponent.Show();
+    }
+
+    private async Task AddUserAsync()
+    {
+        if (string.IsNullOrEmpty(UserToAdd.Password))
+        {
+            Alert = new(Components.Alert.AlertType.Danger, "Unable to save user");
+            AlertComponent.Show();
+            return;
+        }
+
+        UserToAdd.Password = PasswordService.GetHash(UserToAdd.Password);
+        context.Add(UserToAdd);
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch
+        {
+            Alert = new(Components.Alert.AlertType.Danger, "Unable to save user");
+            AlertComponent.Show();
+            Modal.Close();
+            return;
+        }
+        await Grid.RefreshDataAsync();
+        Alert = new(Components.Alert.AlertType.Success, $"Successfully added {UserToAdd.FirstName} {UserToAdd.LastName} ({UserToAdd.Username})");
+        AlertComponent.Show();
+        Modal.Close();
+    }
+
+    private async Task EditUserAsync()
+    {
+        if (string.IsNullOrEmpty(UserToAdd.Password))
+        {
+            Alert = new(Components.Alert.AlertType.Danger, "Unable to save user");
+            AlertComponent.Show();
+            return;
+        }
+
+        UserToAdd.Password = PasswordService.GetHash(UserToAdd.Password);
+        context.Add(UserToAdd);
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch
+        {
+            Alert = new(Components.Alert.AlertType.Danger, "Unable to save user");
+        }
+        await Grid.RefreshDataAsync();
+        Alert = new(Components.Alert.AlertType.Success, $"Successfully added {UserToAdd.FirstName} {UserToAdd.LastName} ({UserToAdd.Username})");
+        AlertComponent.Show();
+        Modal.Close();
+    }
+
+    private void GeneratePassword()
+    {
+        UserToAdd.Password = PasswordService.GenerateRandomPassword();
+    }
+}

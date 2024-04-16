@@ -1,4 +1,6 @@
-﻿using Domain.Entities.Users;
+﻿using Domain.Entities.Common;
+using Domain.Entities.Questions;
+using Domain.Entities.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +13,8 @@ public abstract class CourseItem
 {
     public CourseItem() { }
 
-    protected CourseItem(int id, string name, DateTime created, bool isVisible, int userId, int courseId)
+    protected CourseItem(string name, DateTime created, bool isVisible, int userId, int courseId)
     {
-        Id = id;
         Name = name;
         Created = created;
         IsVisible = isVisible;
@@ -22,6 +23,7 @@ public abstract class CourseItem
     }
 
     public int Id { get; set; }
+    public ECourseItemType CourseItemType { get; set; }
     public string Name { get; set; }
     public DateTime Created { get; set; }
     public bool IsVisible { get; set; }
@@ -29,4 +31,5 @@ public abstract class CourseItem
     public User User { get; set; }
     public int CourseId { get; set; }
     public Course Course { get; set; }
+    public List<Question> Questions { get; set; } = new();
 }

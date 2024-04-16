@@ -6,16 +6,5 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Domain.Entities.Notes;
-public class NoteResponse : CourseItemResponse
-{
-    public string Data { get; set; }
-    public NoteResponse(string type, int id, string name, DateTime created, int createdById, bool isVisible) : base(type, id, name, created, createdById, isVisible)
-    {
-        Type = type;
-        Id = id;
-        Name = name;
-        Created = created;
-        CreatedById = createdById;
-        IsVisible = isVisible;
-    }
-}
+public record NoteResponse(string Type, int Id, string Name, DateTime Created, int CreatedById, bool IsVisible, string Data)
+    : CourseItemResponse(Type, Id, Name, Created, CreatedById, IsVisible);

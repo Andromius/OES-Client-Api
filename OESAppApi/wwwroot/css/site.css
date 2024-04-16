@@ -1,0 +1,194 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --text-50: #ebecf9;
+        --text-100: #d8daf3;
+        --text-200: #b0b4e8;
+        --text-300: #898fdc;
+        --text-400: #6269d0;
+        --text-500: #3b44c4;
+        --text-600: #2f369d;
+        --text-700: #232976;
+        --text-800: #171b4f;
+        --text-900: #0c0e27;
+        --text-950: #060714;
+        --background-50: #eeecf8;
+        --background-100: #dddaf1;
+        --background-200: #bbb4e4;
+        --background-300: #998fd6;
+        --background-400: #7769c9;
+        --background-500: #5644bb;
+        --background-600: #443696;
+        --background-700: #332970;
+        --background-800: #221b4b;
+        --background-900: #110e25;
+        --background-950: #090713;
+        --primary-50: #ecebf9;
+        --primary-100: #dad8f3;
+        --primary-200: #b5b1e7;
+        --primary-300: #8f8adb;
+        --primary-400: #6a63cf;
+        --primary-500: #453cc3;
+        --primary-600: #37309c;
+        --primary-700: #292475;
+        --primary-800: #1c184e;
+        --primary-900: #0e0c27;
+        --primary-950: #070614;
+        --secondary-50: #f4ebf9;
+        --secondary-100: #ead8f3;
+        --secondary-200: #d4b0e8;
+        --secondary-300: #bf89dc;
+        --secondary-400: #aa62d0;
+        --secondary-500: #943bc4;
+        --secondary-600: #772f9d;
+        --secondary-700: #592376;
+        --secondary-800: #3b174f;
+        --secondary-900: #1e0c27;
+        --secondary-950: #0f0614;
+        --accent-50: #f8ebf9;
+        --accent-100: #f1d8f3;
+        --accent-200: #e2b0e8;
+        --accent-300: #d489dc;
+        --accent-400: #c562d0;
+        --accent-500: #b73bc4;
+        --accent-600: #922f9d;
+        --accent-700: #6e2376;
+        --accent-800: #49174f;
+        --accent-900: #250c27;
+        --accent-950: #120614;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-50: #060714;
+        --text-100: #0c0e27;
+        --text-200: #171b4f;
+        --text-300: #232976;
+        --text-400: #2f369d;
+        --text-500: #3b44c4;
+        --text-600: #6269d0;
+        --text-700: #898fdc;
+        --text-800: #b0b4e8;
+        --text-900: #d8daf3;
+        --text-950: #ebecf9;
+        --background: #05040B;
+        --background-50: #090713;
+        --background-100: #110e25;
+        --background-200: #221b4b;
+        --background-300: #332970;
+        --background-400: #443696;
+        --background-500: #5644bb;
+        --background-600: #7769c9;
+        --background-700: #998fd6;
+        --background-800: #bbb4e4;
+        --background-900: #dddaf1;
+        --background-950: #eeecf8;
+        --primary-50: #070614;
+        --primary-100: #0e0c27;
+        --primary-200: #1c184e;
+        --primary-300: #292475;
+        --primary-400: #37309c;
+        --primary-500: #453cc3;
+        --primary-600: #6a63cf;
+        --primary-700: #8f8adb;
+        --primary-800: #b5b1e7;
+        --primary-900: #dad8f3;
+        --primary-950: #ecebf9;
+        --secondary-50: #0f0614;
+        --secondary-100: #1e0c27;
+        --secondary-200: #3b174f;
+        --secondary-300: #592376;
+        --secondary-400: #772f9d;
+        --secondary-500: #943bc4;
+        --secondary-600: #aa62d0;
+        --secondary-700: #bf89dc;
+        --secondary-800: #d4b0e8;
+        --secondary-900: #ead8f3;
+        --secondary-950: #f4ebf9;
+        --accent-50: #120614;
+        --accent-100: #250c27;
+        --accent-200: #49174f;
+        --accent-300: #6e2376;
+        --accent-400: #922f9d;
+        --accent-500: #b73bc4;
+        --accent-600: #c562d0;
+        --accent-700: #d489dc;
+        --accent-800: #e2b0e8;
+        --accent-900: #f1d8f3;
+        --accent-950: #f8ebf9;
+    }
+}
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100vh;
+}
+
+h1:focus {
+    outline: none;
+}
+
+a, .btn-link {
+    color: #0071c1;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred."
+    }
+
+.bg-500 {
+    background-color: var(--background-500);
+}
