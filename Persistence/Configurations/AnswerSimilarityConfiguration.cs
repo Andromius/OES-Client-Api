@@ -12,6 +12,6 @@ public class AnswerSimilarityConfiguration : IEntityTypeConfiguration<AnswerSimi
 {
     public void Configure(EntityTypeBuilder<AnswerSimilarity> builder)
     {
-        builder.HasKey(x => new { x.QuestionId, x.SubmittorId, x.ChallengerId, x.SubmissionId });
+        builder.HasKey(x => new { x.QuestionId, x.SubmissionId, x.CheckAgainstSubmissionId });
     }
 }

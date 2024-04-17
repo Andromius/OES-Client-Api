@@ -5,4 +5,4 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Domain.Entities.Tests.Answers;
-public record AnswerResponse(int Id, string Text, int QuestionId);
+public record AnswerResponse(int Id, string Text, int QuestionId, double? SimilarityPercentage);

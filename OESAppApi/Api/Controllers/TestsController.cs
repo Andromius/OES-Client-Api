@@ -19,6 +19,7 @@ using Persistence;
 using Soenneker.Utils.String.CosineSimilarity;
 using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net.Mime;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -154,7 +155,8 @@ public class TestsController : ControllerBase
     [HttpPost("submit")]
     public async Task<ActionResult<TestSubmissionResponse>> Submit([FromBody] TestSubmissionRequest submissionRequest, [FromServices] IServiceProvider serviceProvider)
     {
-        var newSubmission = _context.TestSubmission.Add(submissionRequest.ToSubmission(_tokenService.GetUserId(Request.ExtractToken())));
+        int userId = _tokenService.GetUserId(Request.ExtractToken());
+        var newSubmission = _context.TestSubmission.Add(submissionRequest.ToSubmission(userId));
         await _context.SaveChangesAsync();
 
         Test test = await _context.Test
@@ -170,19 +172,48 @@ public class TestsController : ControllerBase
             using var scope = serviceProvider.CreateScope();
             using var context = scope.ServiceProvider.GetRequiredService<OESAppApiDbContext>();
             _logger.LogInformation("RUNNING");
-            List<int> openQuestionIds = test.Questions.Where(q => q.Type == QuestionType.Open).Select(q => q.Id.Value).ToList();
-            List<Answer> openQuestionAnswers = updatedSubmission.Entity.Answers.Where(a => openQuestionIds.Contains(a.QuestionId)).ToList();
-            foreach (var item in openQuestionAnswers)
+            int submissionsCount = await context.TestSubmission
+                .Where(t => t.Id == test.Id).CountAsync();
+            if (submissionsCount <= 1)
+                return;
+            
+            List<int> openQuestionIds = test.Questions
+                .Where(q => q.Type == QuestionType.Open)
+                .Select(q => q.Id.Value)
+                .ToList();
+            if (openQuestionIds.Count == 0)
+                return;
+            
+            await context.AnswerSimilarity.Where(a => openQuestionIds.Contains(a.QuestionId)).ExecuteDeleteAsync();
+            IAsyncEnumerable<TestSubmission> submissions = context.TestSubmission
+                .Where(t => t.Id == test.Id)
+                .Include(t => t.Answers.Where(a => openQuestionIds.Contains(a.QuestionId)))
+                .AsAsyncEnumerable();
+
+            await foreach (var submission in submissions)
             {
-                await foreach (var answer in context.Answer
-                    .Where(a => a.TestSubmissionId != updatedSubmission.Entity.Id && a.QuestionId == item.QuestionId)
-                    .OrderBy(a => a.QuestionId)
+                List<Answer> orderedAnswers = submission.Answers.OrderByDescending(a => a.QuestionId).ToList();
+                await foreach (var submissionAgainst in context.TestSubmission
+                    .Where(t => t.Id == test.Id && submission.Id != t.Id && submission.UserId != t.UserId)
+                    .Include(t => t.Answers.Where(a => openQuestionIds.Contains(a.QuestionId)))
                     .AsAsyncEnumerable())
                 {
-                    var similarity = CosineSimilarityStringUtil.CalculateSimilarityPercentage(item.Text, answer.Text);
-                    _logger.LogInformation(similarity.ToString());
+                    List<Answer> orderedAgainstAnswers = submissionAgainst.Answers.OrderByDescending(a => a.QuestionId).ToList();
+                    for (int i = 0; i < orderedAnswers.Count; i++)
+                    {
+                        double similarity = CosineSimilarityStringUtil.CalculateSimilarityPercentage(orderedAnswers[i].Text, orderedAgainstAnswers[i].Text);
+                        AnswerSimilarity answerSimilarity = new()
+                        {
+                            Similarity = similarity,
+                            SubmissionId = submission.Id,
+                            CheckAgainstSubmissionId = submissionAgainst.Id,
+                            QuestionId = orderedAnswers[i].QuestionId,
+                        };
+                        context.Add(answerSimilarity);
+                    }
                 }
             }
+            await context.SaveChangesAsync();
             _logger.LogInformation("FINISHED");
         });
         _logger.LogInformation("RESPONDED");
@@ -207,21 +238,38 @@ public class TestsController : ControllerBase
     [HttpGet("{id}/submissions/{submissionId}")]
     public async Task<ActionResult<List<AnswerResponse>>> GetSubmissionAnswers(int id, int submissionId)
     {
-        int? courseId = await _context.Test
+        Test? test = await _context.Test
+            .Include(t => t.Questions)
             .Where(t => t.Id == id)
-            .Select(t => new int?(t.CourseId))
             .SingleOrDefaultAsync();
-        if (courseId is null)
+        if (test is null)
             return NotFound();
 
-        var result = await _courseRepository.GetUserCourseRoleAsync(courseId.Value, _tokenService.GetUserId(Request.ExtractToken()));
+        var result = await _courseRepository.GetUserCourseRoleAsync(test.CourseId, _tokenService.GetUserId(Request.ExtractToken()));
         if (!result.IsSuccess || result.Value is CourseEnum.Attendant)
             return Forbid();
 
-        List<AnswerResponse> response = await _context.Answer
+        List<int> openQuestionIds = test.Questions
+            .Where(q => q.Type == QuestionType.Open)
+            .Select(q => q.Id.Value)
+            .ToList();
+
+        List<Answer> answers = await _context.Answer
             .Where(a => a.TestSubmissionId == submissionId)
-            .Select(a => new AnswerResponse(a.Id, a.Text, a.QuestionId))
             .ToListAsync();
+
+        List<AnswerSimilarity> similarities = await _context.AnswerSimilarity
+            .Where(a => a.SubmissionId == submissionId && openQuestionIds.Contains(a.QuestionId))
+            .ToListAsync();
+
+        List<AnswerResponse> response = [];
+        foreach (var answer in answers)
+        {
+            response.Add(new(answer.Id, answer.Text, answer.QuestionId,
+                similarities
+                    .Where(s => s.QuestionId == answer.QuestionId)
+                    .Select(s => new double?(s.Similarity)).SingleOrDefault()));
+        }
 
         return Ok(response);
     }

@@ -14,9 +14,7 @@ public class AnswerSimilarity
     public Question Question { get; set; }
     public int SubmissionId { get; set; }
     public TestSubmission Submission { get; set; }
-    public int SubmittorId { get; set; }
-    public User Submittor { get; set; }
-    public int ChallengerId { get; set; }
-    public User Challenger { get; set; }
+    public int CheckAgainstSubmissionId { get; set; }
+    public TestSubmission CheckAgainstSubmission { get; set; }
     public double Similarity { get; set; }
 }
