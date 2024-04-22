@@ -1,10 +1,18 @@
-﻿using System.Collections.Concurrent;
+﻿using Persistence;
+using System.Collections.Concurrent;
 
 namespace OESAppApi.Api.Services;
 
 public class BackgroundWorkerQueue
 {
     private readonly ConcurrentQueue<Func<Task>> _workItems = new();
+    public IServiceProvider ServiceProvider { get; }
+
+    public BackgroundWorkerQueue(IServiceProvider serviceProvider)
+    {
+        ServiceProvider = serviceProvider;
+    }
+
     private readonly SemaphoreSlim _signal = new(0, 1);
 
     public async Task<Func<Task>> DequeueAsync()

@@ -1,4 +1,5 @@
-﻿using Domain.Entities.Courses;
+﻿using Domain.Entities.CentralConfig;
+using Domain.Entities.Courses;
 using Domain.Entities.Devices;
 using Domain.Entities.Homeworks;
 using Domain.Entities.Notes;
@@ -42,6 +43,7 @@ public class OESAppApiDbContext : DbContext
     public DbSet<Quiz> Quiz { get; set; }
     public DbSet<UserQuiz> UserQuiz { get; set; }
     public DbSet<AnswerSimilarity> AnswerSimilarity { get; set; }
+    public DbSet<CentralConfig> CentralConfig { get; set; }
     public OESAppApiDbContext() { }
     public OESAppApiDbContext(DbContextOptions options) : base(options) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)

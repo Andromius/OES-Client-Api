@@ -39,11 +39,11 @@ public class Program
         builder.Logging.ClearProviders();
         builder.Logging.SetMinimumLevel(LogLevel.Information);
         builder.Logging.AddConsole();
-        builder.Services.AddDbContext<OESAppApiDbContext>(options =>
+        builder.Services.AddDbContextPool<OESAppApiDbContext>(options =>
         {
             options.UseNpgsql(builder.Configuration["DATABASE_CONNECTION_STRING"], b => b.MigrationsAssembly("OESAppApi"));
             options.LogTo(Console.WriteLine, LogLevel.Warning);
-        });
+        }, 70);
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddSingleton<WeatherForecastService>();
@@ -56,7 +56,8 @@ public class Program
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddSingleton<InMemoryQuizService>();
         builder.Services.AddHttpContextAccessor();
-        builder.Services.AddQuickGridEntityFrameworkAdapter();
+		builder.Services.AddHttpClient();
+		builder.Services.AddQuickGridEntityFrameworkAdapter();
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddScheme<JwtBearerOptions, CustomAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, options => 

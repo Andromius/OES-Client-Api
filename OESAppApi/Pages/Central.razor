@@ -1,7 +1,193 @@
 ﻿@page "/central"
+@using Domain.Entities.CentralConfig
+@using System.Text.Json
+@using Domain.Entities
+@using Microsoft.EntityFrameworkCore
+@using Persistence
+@using System.Web
+@inject OESAppApiDbContext _context
+@inject HttpClient _httpClient
 
-<h3>Central</h3>
+<h1>Central</h1>
+
+@if (!isReadonly)
+{
+	<p>In order for your app to be accessible, you need to publish it to the central API</p>
+}
+
+
+<div class="mb-3">
+	<label for="uri" class="form-label">URI</label>
+	<input type="url" class="form-control" id="uri" @bind="inputUri" @bind:event="oninput" placeholder="https://sampleurl.com">
+	<div class="form-text">Uri where this app is accessible from</div>
+</div>
+<div class="mb-3">
+	<label for="name" class="form-label">Organization Name</label>
+	@if (isReadonly)
+	{
+		<input type="text" readonly class="form-control" id="name" @bind="appName" @bind:event="oninput">
+	}
+	else
+	{
+		<input type="text" class="form-control" id="name" @bind="appName" @bind:event="oninput">
+	}
+</div>
+<div class="mb-3">
+	<label for="pass" class="form-label">Password</label>
+	<input disabled readonly class="form-control" id="pass" value="@Config?.Password">
+</div>
+<div class="mb-3">
+	<label for="update" class="form-label">Last update</label>
+	<input disabled readonly class="form-control" id="update" value="@Config?.CreatedAt">
+</div>
+
+@if (!isReadonly)
+{
+	<button type="submit" class="btn btn-primary" @onclick=@(async () => await PublishToCentral())>Publish to central</button>
+}
+else
+{
+	<button type="submit" class="btn btn-primary" @onclick=@(async () => await Update())>Update</button>
+	<button type="submit" class="btn btn-danger" @onclick=@(async () => await Delete())>Delete</button>
+}
+
+
+<Alert @ref="@AlertComponent" Type="@Alert.Item1" Class="mt-2">
+	@Alert.Item2
+</Alert>
 
 @code {
+	private Tuple<Alert.AlertType, string> Alert { get; set; }
+	private Alert AlertComponent { get; set; }
 
+	private CentralConfig? Config { get; set; }
+	private bool isReadonly = true;
+	private readonly Uri centralUri = new("https://localhost:7018/api/organizations/"); //http://oes-main.sobotovi.net:8002/api/organizations
+	private string inputUri = string.Empty;
+	private string appName = string.Empty;
+
+	protected override void OnInitialized()
+	{
+		Alert = new(Components.Alert.AlertType.Success, "");
+		Config = _context.CentralConfig
+			.OrderByDescending(c => c.CreatedAt)
+			.FirstOrDefault();
+		if (Config is null)
+		{
+			isReadonly = false;
+			Config = new();
+		}
+		inputUri = Config.AppAddress is null ? string.Empty : Config.AppAddress.ToString();
+		appName = string.IsNullOrEmpty(Config.AppName) ? string.Empty : Config.AppName;
+	}
+
+	private async Task PublishToCentral()
+	{
+		if (string.IsNullOrEmpty(appName) || string.IsNullOrEmpty(inputUri))
+		{
+			Alert = new(Components.Alert.AlertType.Danger, "The URI and Name must be filled");
+			return;
+		}
+		var response = await _httpClient.PostAsJsonAsync(centralUri, new CentralConfigRequest(appName, inputUri));
+
+		if (!response.IsSuccessStatusCode)
+		{
+			string message = response.StatusCode switch
+			{
+				System.Net.HttpStatusCode.BadRequest => await response.Content.ReadAsStringAsync(),
+				_ => "An error has been encountered on the central server"
+			};
+			Alert = new(Components.Alert.AlertType.Danger, message);
+			return;
+		}
+		var centralConfigResponse = await response.Content.ReadFromJsonAsync<CentralConfigResponse>();
+		CentralConfig newConfig = new()
+		{
+			AppAddress = centralConfigResponse.Uri,
+			AppName = centralConfigResponse.Name,
+			Password = centralConfigResponse.Password,
+			CreatedAt = DateTime.UtcNow
+		};
+		_context.Add(newConfig);
+		await _context.SaveChangesAsync();
+		isReadonly = true;
+		Config = newConfig;
+		appName = Config.AppName;
+		inputUri = Config.AppAddress.ToString();
+		Alert = new(Components.Alert.AlertType.Success, "App published successfully");
+	}
+
+	private async Task Update()
+	{
+		if (Config is null)
+			return;
+
+		if (string.IsNullOrEmpty(inputUri))
+		{
+			Alert = new(Components.Alert.AlertType.Danger, "The URI must be filled");
+			return;
+		}
+
+		Uri putUri = new(centralUri, HttpUtility.HtmlEncode(Config.AppName));
+		var response = await _httpClient.PutAsJsonAsync(putUri, new CentralConfigPasswordRequest(inputUri, Config.Password));
+
+		if (!response.IsSuccessStatusCode)
+		{
+			string message = response.StatusCode switch
+			{
+				System.Net.HttpStatusCode.BadRequest or System.Net.HttpStatusCode.Forbidden => await response.Content.ReadAsStringAsync(),
+				_ => "An error has been encountered on the central server"
+			};
+			Alert = new(Components.Alert.AlertType.Danger, message);
+			AlertComponent.Show();
+			return;
+		}
+		CentralConfig newConfig = new()
+		{
+			AppAddress = new(inputUri),
+			AppName = Config.AppName,
+			Password = Config.Password,
+			CreatedAt = DateTime.UtcNow
+		};
+		_context.Add(newConfig);
+		await _context.SaveChangesAsync();
+		isReadonly = true;
+		Config = newConfig;
+		appName = Config.AppName;
+		inputUri = Config.AppAddress.ToString();
+		Alert = new(Components.Alert.AlertType.Success, "App updated successfully");
+		AlertComponent.Show();
+	}
+
+	private async Task Delete()
+	{
+		if (Config is null)
+			return;
+
+		Uri deleteUri = new(centralUri, HttpUtility.HtmlEncode(Config.AppName));
+		HttpRequestMessage request = new(HttpMethod.Delete, deleteUri);
+		request.Content = JsonContent.Create(Config.Password);
+		var response = await _httpClient.SendAsync(request);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			string message = response.StatusCode switch
+			{
+				System.Net.HttpStatusCode.Forbidden => await response.Content.ReadAsStringAsync(),
+				_ => "An error has been encountered on the central server"
+			};
+			Alert = new(Components.Alert.AlertType.Danger, message);
+			AlertComponent.Show();
+			return;
+		}
+
+		if (await _context.CentralConfig.AnyAsync())
+			await _context.CentralConfig.Where(x => true).ExecuteDeleteAsync();
+		isReadonly = false;
+		Config = new();
+		appName = string.Empty;
+		inputUri = string.Empty;
+		Alert = new(Components.Alert.AlertType.Success, "App has been deleted from central and central configs have been deleted");
+		AlertComponent.Show();
+	}
 }

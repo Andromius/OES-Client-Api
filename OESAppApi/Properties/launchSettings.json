@@ -14,7 +14,8 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DATABASE_CONNECTION_STRING": "Server=localhost;Port=5432;Database=oesapp;User Id=postgres;Password=oes;"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7254;http://localhost:5294"

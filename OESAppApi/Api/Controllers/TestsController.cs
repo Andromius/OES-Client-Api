@@ -136,6 +136,7 @@ public class TestsController : ControllerBase
         if (t is null)
             return NotFound();
 
+        await _context.TestSubmission.Where(ts => ts.TestId == t.Id).ExecuteDeleteAsync();
         _logger.LogInformation($"{nameof(Test)}: BEFORE Q DELETION");
         await _context.Question.Where(q => q.ItemId == id).ExecuteDeleteAsync();
         t.Questions.AddRange(value.Questions.ToQuestionList());
@@ -169,12 +170,12 @@ public class TestsController : ControllerBase
         await _context.SaveChangesAsync();
         _backgroundWorkerQueue.QueueBackgroundWorkItem(async () =>
         {
-            using var scope = serviceProvider.CreateScope();
+            using var scope = _backgroundWorkerQueue.ServiceProvider.CreateScope();
             using var context = scope.ServiceProvider.GetRequiredService<OESAppApiDbContext>();
             _logger.LogInformation("RUNNING");
             int submissionsCount = await context.TestSubmission
-                .Where(t => t.Id == test.Id).CountAsync();
-            if (submissionsCount <= 1)
+                .Where(t => t.TestId == test.Id && t.UserId != userId).CountAsync();
+            if (submissionsCount < 1)
                 return;
             
             List<int> openQuestionIds = test.Questions
@@ -183,22 +184,27 @@ public class TestsController : ControllerBase
                 .ToList();
             if (openQuestionIds.Count == 0)
                 return;
-            
+
+            _logger.LogInformation("DELETING PREVIOUS CALCULATIONS");
             await context.AnswerSimilarity.Where(a => openQuestionIds.Contains(a.QuestionId)).ExecuteDeleteAsync();
             IAsyncEnumerable<TestSubmission> submissions = context.TestSubmission
-                .Where(t => t.Id == test.Id)
+                .Where(t => t.TestId == test.Id)
                 .Include(t => t.Answers.Where(a => openQuestionIds.Contains(a.QuestionId)))
+                .AsSplitQuery()
                 .AsAsyncEnumerable();
-
+            _logger.LogInformation("1ST FOREACH");
             await foreach (var submission in submissions)
             {
                 List<Answer> orderedAnswers = submission.Answers.OrderByDescending(a => a.QuestionId).ToList();
+                _logger.LogInformation("2ND FOREACH");
                 await foreach (var submissionAgainst in context.TestSubmission
-                    .Where(t => t.Id == test.Id && submission.Id != t.Id && submission.UserId != t.UserId)
+                    .Where(t => t.TestId == test.Id && submission.Id != t.Id && submission.UserId != t.UserId)
                     .Include(t => t.Answers.Where(a => openQuestionIds.Contains(a.QuestionId)))
                     .AsAsyncEnumerable())
                 {
                     List<Answer> orderedAgainstAnswers = submissionAgainst.Answers.OrderByDescending(a => a.QuestionId).ToList();
+                    _logger.LogInformation("FOR LOOP");
+                    _logger.LogInformation($"{orderedAgainstAnswers.Count} {orderedAnswers.Count}");
                     for (int i = 0; i < orderedAnswers.Count; i++)
                     {
                         double similarity = CosineSimilarityStringUtil.CalculateSimilarityPercentage(orderedAnswers[i].Text, orderedAgainstAnswers[i].Text);
@@ -213,6 +219,7 @@ public class TestsController : ControllerBase
                     }
                 }
             }
+            _logger.LogInformation("SAVING");
             await context.SaveChangesAsync();
             _logger.LogInformation("FINISHED");
         });
@@ -265,10 +272,11 @@ public class TestsController : ControllerBase
         List<AnswerResponse> response = [];
         foreach (var answer in answers)
         {
-            response.Add(new(answer.Id, answer.Text, answer.QuestionId,
-                similarities
+            List<double?> currentQuestionAverageSimilarity = similarities
                     .Where(s => s.QuestionId == answer.QuestionId)
-                    .Select(s => new double?(s.Similarity)).SingleOrDefault()));
+                    .Select(s => new double?(s.Similarity)).ToList();
+            response.Add(new(answer.Id, answer.Text, answer.QuestionId,
+                currentQuestionAverageSimilarity.Count > 0 ? currentQuestionAverageSimilarity.Average() : null));
         }
 
         return Ok(response);

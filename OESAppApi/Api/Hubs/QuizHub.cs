@@ -22,13 +22,15 @@ public class QuizHub : Hub
     private readonly InMemoryQuizService _inMemoryQuizService;
     private readonly ICourseRepository _courseRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ILogger<QuizHub> _logger;
 
-    public QuizHub(OESAppApiDbContext context, InMemoryQuizService inMemoryQuizService, IUserRepository userRepository, ICourseRepository courseRepository)
+    public QuizHub(OESAppApiDbContext context, InMemoryQuizService inMemoryQuizService, IUserRepository userRepository, ICourseRepository courseRepository, ILogger<QuizHub> logger)
     {
         _context = context;
         _inMemoryQuizService = inMemoryQuizService;
         _courseRepository = courseRepository;
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     public async Task JoinGroup(int userId, int quizId)
@@ -129,22 +131,20 @@ public class QuizHub : Hub
         }
 
         Dictionary<int, QuizUser> usersWithoutTeachers = _inMemoryQuizService.GetAllUsersWithoutTeachers(quizId);
-        Dictionary<int, int> userQuestionPoints = [];
+        Dictionary<int, Dictionary<string, int>> userQuestionPoints = [];
         foreach (var user in usersWithoutTeachers)
         {
-            userQuestionPoints[user.Key] = _inMemoryQuizService.CheckAnswer(questionResult.Value!, user.Key);
+            userQuestionPoints[user.Key] = new() { 
+                { "points", _inMemoryQuizService.CheckAnswer(questionResult.Value!, user.Key) }
+            };
         }
 
-        List<Task> tasks = [];
         foreach (var user in usersWithoutTeachers)
         {
-            tasks.Add(Task.Run(async () =>
-            {
-                var position = _inMemoryQuizService.GetUserPositionForQuestion(quizId, questionResult.Value!, user.Key);
-                await Clients.Client(user.Value.ConnectionId).SendAsync("ShowCurrentQuestionResultsCallback", userQuestionPoints[user.Key], position);
-            }));
+            userQuestionPoints[user.Key].Add("position", _inMemoryQuizService.GetUserPositionForQuestion(quizId, questionResult.Value!, user.Key));
         }
-        await Task.WhenAll(tasks);
+        
+        await Clients.Groups(groupName).SendAsync("ShowCurrentQuestionResultsCallback", userQuestionPoints);
     }
 
     public async Task ShowResults(int userId, int quizId)
@@ -198,7 +198,11 @@ public class QuizHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        await base.OnDisconnectedAsync(exception);
+        _logger.LogInformation(Context.ConnectionId);
         int groupId = _inMemoryQuizService.RemoveUserFromGroup(Context.ConnectionId);
+        if (groupId == -1)
+            return;
         List<int> userIds = _inMemoryQuizService
            .GetAllUsersWithoutTeachers(groupId)
            .Select(user => user.Key)
@@ -208,6 +212,6 @@ public class QuizHub : Hub
             .Select(u => new UserResponse(u.Id, u.FirstName, u.LastName, u.Username))
             .ToList();
         await Clients.Group(groupId.ToString()).SendAsync("RemoveFromGroupCallback", response);
-        await base.OnDisconnectedAsync(exception);
+        _logger.LogInformation("HERE U DCD");
     }
 }

@@ -5,6 +5,7 @@ using Domain.Entities.Questions.Options;
 using Domain.Entities.Quizzes;
 using Domain.Entities.Tests.Answers;
 using Domain.Entities.Users;
+using Microsoft.IdentityModel.Abstractions;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -215,9 +216,17 @@ public class InMemoryQuizService
 
     public int RemoveUserFromGroup(string connectionId)
     {
-        var group = Groups.SingleOrDefault(g => g.Value.Any(u => u.Value.ConnectionId == connectionId));
-        var user = group.Value.Where(u => u.Value.ConnectionId == connectionId).SingleOrDefault();
-        RemoveUserFromGroup(group.Key, user.Key);
-        return group.Key;
+        foreach (var group in Groups)
+        {
+            foreach (var user in group.Value)
+            {
+                if (user.Value.ConnectionId == connectionId)
+                {
+                    RemoveUserFromGroup(group.Key, user.Key);
+                    return group.Key;
+                }
+            }
+        }
+        return -1;
     }
 }

@@ -1,0 +1,110 @@
+﻿@page "/sessions"
+@page "/users/{userId:int}/sessions"
+
+@using Domain.Entities.Sessions
+@using Domain.Entities.Users
+@using Microsoft.EntityFrameworkCore
+@using Persistence
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Domain.Services
+@using Domain.Entities.Common
+@inject OESAppApiDbContext _context
+@inject NavigationManager _navigationManager
+@inject ITokenService _tokenService
+
+<PageTitle>Sessions</PageTitle>
+@if (UserId is null)
+{
+    <h1>Sessions</h1>
+}
+else
+{
+    <h1>Sessions (userId: @UserId.Value)</h1>
+}
+
+<Modal @ref="@RemoveModal" Title="Remove Session" Centered=true>
+    <p class="text-break">Are you sure you want to remove session? @SelectedSession?.Token</p>
+    <button type="button" class="btn btn-danger float-end" @onclick='async () => await RemoveSessionAsync()'>Remove</button>
+</Modal>
+
+<div class="row">
+    <div class="col">
+        <select id="itemsPerPage" class="form-select" @bind="@pagination.ItemsPerPage">
+            <option>5</option>
+            <option>10</option>
+            <option>15</option>
+            <option>20</option>
+            <option>25</option>
+            <option value="@pagination.TotalItemCount">All</option>
+        </select>
+    </div>
+</div>
+
+<div class="grid">
+    <QuickGrid Items="@sessionQueryable" Pagination="@pagination" @ref="@Grid" Class="table table-striped table-bordered table-hover mt-2">
+        <PropertyColumn Property="@(s => s.Token)" Sortable="true" InitialSortDirection="SortDirection.Descending" Class="token" />
+        <PropertyColumn Property="@(s => s.DevicePlatform.PlatformName)" Sortable="true" />
+        <PropertyColumn Property="@(s => s.DeviceName)" Sortable="true" />
+        <PropertyColumn Property="@(s => s.IsWeb ? "Yes" : "No")" Title="Is Web" Sortable="true" />
+        <PropertyColumn Property="@(s => s.UserId)" Sortable="true" />
+        <PropertyColumn Property="@(s => _tokenService.ReadToken(s.Token).ValidTo)" Title="Exipres At" Class="valid-to"/>
+         <TemplateColumn Title="Actions" Class="table-actions">
+            <button class="ico-btn" @onclick='() => { SelectedSession = context; RemoveModal.Open(); }'>
+                <span class="oi oi-x"></span>
+            </button>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+<Paginator State="@pagination">
+</Paginator>
+
+@code {
+    [Parameter]
+    public int? UserId { get; set; }
+
+    private Tuple<Alert.AlertType, string> Alert { get; set; }
+    private readonly PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private Alert AlertComponent { get; set; }
+
+    private QuickGrid<Session> Grid { get; set; }
+    private IQueryable<Session>? sessionQueryable;
+    private Session SelectedSession { get; set; }
+
+    private Modal RemoveModal { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Alert = new(Components.Alert.AlertType.Success, "");
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        sessionQueryable = _context.Session.Include(s => s.DevicePlatform);
+        if (UserId is not null)
+            sessionQueryable = sessionQueryable.Where(s => s.UserId == UserId.Value);
+    }
+
+    private async Task RemoveSessionAsync()
+    {
+        _context.Session.Remove(SelectedSession);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch
+        {
+            await Grid.RefreshDataAsync();
+            Alert = new(Components.Alert.AlertType.Danger, "Unable to delete session, it has likely already been deleted!");
+            AlertComponent.Show();
+            return;
+        }
+
+        await Grid.RefreshDataAsync();
+        Alert = new(Components.Alert.AlertType.Success, $"Successfully deleted {SelectedSession.Token}");
+        AlertComponent.Show();
+    }
+}

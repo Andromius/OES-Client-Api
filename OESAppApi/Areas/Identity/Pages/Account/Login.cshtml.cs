@@ -8,6 +8,7 @@ using NuGet.Configuration;
 using Persistence;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Security.Claims;
 
 namespace OESAppApi.Pages.Account
 {
@@ -44,7 +45,7 @@ namespace OESAppApi.Pages.Account
                 return Page();
 
             string token = _tokenService.GenerateToken(user.Id, user.Role, DateTime.UtcNow);
-            await HttpContext.SignInAsync("Cookies", await _tokenService.GetPrincipal(token), new AuthenticationProperties() { IsPersistent = true });
+            await HttpContext.SignInAsync("Cookies", await _tokenService.GetPrincipal(token), new AuthenticationProperties() { IsPersistent = false });
             return LocalRedirect("~/");
         }
         public class CredentialsModel

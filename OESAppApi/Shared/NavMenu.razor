@@ -1,4 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject NavigationManager _navigationManager
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">OES Admin Panel</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -16,7 +18,12 @@
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="users">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Users
+                <span class="oi oi-people" aria-hidden="true"></span> Users
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="sessions">
+                <span class="oi oi-key" aria-hidden="true"></span> Sessions
             </NavLink>
         </div>
         <div class="nav-item px-3">
@@ -25,6 +32,15 @@
             </NavLink>
         </div>
     </nav>
+    <div class="nav-item px-3">
+        <AuthorizeView>
+            <Authorized>
+                <button type="button" class="btn btn-danger" @onclick="RedirectToLogout">
+                    Logout
+                </button>
+            </Authorized>
+        </AuthorizeView>
+    </div>
 </div>
 
 @code {
@@ -35,5 +51,10 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void RedirectToLogout()
+    {
+        _navigationManager.NavigateTo("identity/account/logout", true);
     }
 }

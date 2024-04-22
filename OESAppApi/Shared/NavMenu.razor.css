@@ -65,4 +65,14 @@
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
     }
+
+    .btn-danger {
+        display: none;
+    }
+}
+
+@media (max-width: 640.98px) {
+    .btn-danger {
+        width: 100%;
+    }
 }

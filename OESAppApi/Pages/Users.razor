@@ -1,14 +1,16 @@
 ﻿@page "/users"
+
 @using Domain.Entities.Users
 @using Persistence
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Domain.Services
 @inject OESAppApiDbContext context
+@inject NavigationManager _navigationManager
+
 <PageTitle>Users</PageTitle>
 <h1>Users</h1>
 
 <Modal @ref="@Modal" Title="Add user" Centered=true>
-    @* <EditForm Model="UserToAdd"></EditForm> *@
     <div class="mb-3">
         <label for="fname" class="form-label">First name</label>
         <input type="text" class="form-control" id="fname" placeholder="John" @bind="UserToAdd.FirstName" @bind:event="oninput">
@@ -38,6 +40,38 @@
         </div>
     </div>
     <button type="button" class="btn btn-success float-end" @onclick='async () => await AddUserAsync()'>Add user</button>
+</Modal>
+
+<Modal @ref="@EditModal" Title="Add user" Centered=true>
+    <div class="mb-3">
+        <label for="fname" class="form-label">First name</label>
+        <input type="text" class="form-control" id="fname" placeholder="John" @bind="UserToAdd.FirstName" @bind:event="oninput">
+    </div>
+    <div class="mb-3">
+        <label for="lname" class="form-label">Last name</label>
+        <input type="text" class="form-control" id="lname" placeholder="John" @bind="UserToAdd.LastName" @bind:event="oninput">
+    </div>
+    <div class="mb-3">
+        <label for="uname" class="form-label">Username</label>
+        <input type="text" class="form-control" id="uname" placeholder="John" @bind="UserToAdd.Username" @bind:event="oninput">
+    </div>
+    <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <select id="role" class="form-select" @bind="UserToAdd.Role" @bind:event="oninput">
+            @foreach (var role in Enum.GetValues(typeof(UserRole)))
+            {
+                <option>@role</option>
+            }
+        </select>
+    </div>
+    <div class="mb-5">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="password" @bind="UserToAdd.Password" @bind:event="oninput" readonly required>
+            <button type="button" class="btn btn-primary" @onclick=GeneratePassword>Generate password</button>
+        </div>
+    </div>
+    <button type="button" class="btn btn-success float-end" @onclick='async () => { await EditUserAsync(); }'>Edit user</button>
 </Modal>
 
 <Modal @ref="@RemoveModal" Title="Remove user" Centered=true>
@@ -78,11 +112,14 @@
         <PropertyColumn Property="@(u => u.Username)" Sortable="true"/>
         <PropertyColumn Property="@(u => u.Role)" Sortable="true" Title="System role" />
         <TemplateColumn Title="Actions" Class="table-actions">
-            <button class="ico-btn" @onclick='() => { SelectedUser = context; Modal.Open(); }'>
+            <button class="ico-btn" @onclick='() => { UserToAdd = context; EditModal.Open(); }'>
                 <span class="oi oi-wrench"></span>
             </button>
             <button class="ico-btn" @onclick='() => { SelectedUser = context; RemoveModal.Open(); }'>
                 <span class="oi oi-x"></span>
+            </button>
+            <button class="ico-btn" @onclick='async () => { await Navigate(context.Id, "sessions"); }'>
+                <span class="oi oi-key"></span>
             </button>
         </TemplateColumn>
     </QuickGrid>
@@ -97,8 +134,11 @@
     private Tuple<Alert.AlertType, string> Alert { get; set; }
     private Alert AlertComponent { get; set; }
     private QuickGrid<User> Grid { get; set; }
+
     private Modal Modal { get; set; }
     private Modal RemoveModal { get; set; }
+    private Modal EditModal { get; set; }
+
     private string ModalTitle;
     private User UserToAdd { get; set; }
     private User SelectedUser { get; set; }
@@ -184,6 +224,7 @@
         Alert = new(Components.Alert.AlertType.Success, $"Successfully added {UserToAdd.FirstName} {UserToAdd.LastName} ({UserToAdd.Username})");
         AlertComponent.Show();
         Modal.Close();
+        UserToAdd = new();
     }
 
     private async Task EditUserAsync()
@@ -196,7 +237,7 @@
         }
 
         UserToAdd.Password = PasswordService.GetHash(UserToAdd.Password);
-        context.Add(UserToAdd);
+        context.Update(UserToAdd);
         try
         {
             await context.SaveChangesAsync();
@@ -206,13 +247,20 @@
             Alert = new(Components.Alert.AlertType.Danger, "Unable to save user");
         }
         await Grid.RefreshDataAsync();
-        Alert = new(Components.Alert.AlertType.Success, $"Successfully added {UserToAdd.FirstName} {UserToAdd.LastName} ({UserToAdd.Username})");
+        Alert = new(Components.Alert.AlertType.Success, $"Successfully edited  {UserToAdd.Id} {UserToAdd.FirstName} {UserToAdd.LastName} ({UserToAdd.Username})");
         AlertComponent.Show();
         Modal.Close();
+        UserToAdd = new();
     }
 
     private void GeneratePassword()
     {
         UserToAdd.Password = PasswordService.GenerateRandomPassword();
+    }
+
+    private async Task Navigate(int id, string page)
+    {
+        await Grid.RefreshDataAsync();
+        _navigationManager.NavigateTo($"/users/{id}/{page}");
     }
 }
