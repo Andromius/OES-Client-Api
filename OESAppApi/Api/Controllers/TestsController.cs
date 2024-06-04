@@ -112,7 +112,7 @@ public class TestsController : ControllerBase
         var result = await _courseRepository.GetUserCourseRoleAsync(courseId, userId);
 
         if (!result.IsSuccess || result.Value is CourseEnum.Attendant)
-            return Forbid();
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
         
         Test testToAdd = request.ToTest(userId, courseId);
         var addedTest = _context.Add(testToAdd);
@@ -254,7 +254,7 @@ public class TestsController : ControllerBase
 
         var result = await _courseRepository.GetUserCourseRoleAsync(test.CourseId, _tokenService.GetUserId(Request.ExtractToken()));
         if (!result.IsSuccess || result.Value is CourseEnum.Attendant)
-            return Forbid();
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
 
         List<int> openQuestionIds = test.Questions
             .Where(q => q.Type == QuestionType.Open)
@@ -309,7 +309,7 @@ public class TestsController : ControllerBase
 
         var result = await _courseRepository.GetUserCourseRoleAsync(test.CourseId, _tokenService.GetUserId(Request.ExtractToken()));
         if (!result.IsSuccess || result.Value is CourseEnum.Attendant)
-            return Forbid();
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
 
         TestSubmission? submission = await _context.TestSubmission
             .Where(s => s.Id == submissionId)
@@ -358,7 +358,7 @@ public class TestsController : ControllerBase
 
         var result = await _courseRepository.GetUserCourseRoleAsync(test.CourseId, _tokenService.GetUserId(Request.ExtractToken()));
         if (!result.IsSuccess || result.Value is CourseEnum.Attendant)
-            return Forbid();
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
 
         TestSubmission? submission = await _context.TestSubmission
             .Where(s => s.Id == submissionId)

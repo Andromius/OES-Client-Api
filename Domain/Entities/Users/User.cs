@@ -3,6 +3,7 @@ using Domain.Entities.Devices;
 using Domain.Entities.Homeworks;
 using Domain.Entities.Sessions;
 using Domain.Entities.Tests;
+using Domain.Entities.UserQuizzes;
 using System.Linq.Expressions;
 
 namespace Domain.Entities.Users;
@@ -20,6 +21,7 @@ public class User
     public List<Session> Sessions { get; set; } = [];
     public List<HomeworkSubmission> HomeworkSubmissions { get; set; } = [];
     public List<HomeworkScore> HomeworkScores { get; set; } = [];
+    public List<UserQuizUserPermission> UserQuizPermissions { get; set; } = [];
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public User() { }

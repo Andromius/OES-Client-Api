@@ -62,7 +62,7 @@ else
 
 	private CentralConfig? Config { get; set; }
 	private bool isReadonly = true;
-	private readonly Uri centralUri = new("https://localhost:7018/api/organizations/"); //http://oes-main.sobotovi.net:8002/api/organizations
+	private readonly Uri centralUri = new("http://oes-main.sobotovi.net:8002/api/"); //https://localhost:7018/api/organizations/
 	private string inputUri = string.Empty;
 	private string appName = string.Empty;
 
@@ -86,9 +86,11 @@ else
 		if (string.IsNullOrEmpty(appName) || string.IsNullOrEmpty(inputUri))
 		{
 			Alert = new(Components.Alert.AlertType.Danger, "The URI and Name must be filled");
+			AlertComponent.Show();
 			return;
 		}
-		var response = await _httpClient.PostAsJsonAsync(centralUri, new CentralConfigRequest(appName, inputUri));
+		Uri postUri = new Uri(centralUri, "organizations");
+		var response = await _httpClient.PostAsJsonAsync(postUri, new CentralConfigRequest(appName, inputUri));
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -98,6 +100,7 @@ else
 				_ => "An error has been encountered on the central server"
 			};
 			Alert = new(Components.Alert.AlertType.Danger, message);
+			AlertComponent.Show();
 			return;
 		}
 		var centralConfigResponse = await response.Content.ReadFromJsonAsync<CentralConfigResponse>();
@@ -115,6 +118,7 @@ else
 		appName = Config.AppName;
 		inputUri = Config.AppAddress.ToString();
 		Alert = new(Components.Alert.AlertType.Success, "App published successfully");
+		AlertComponent.Show();
 	}
 
 	private async Task Update()

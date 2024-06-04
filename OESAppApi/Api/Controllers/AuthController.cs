@@ -28,20 +28,20 @@ public class AuthController : ControllerBase
         _tokenService = tokenService;
     }
 
-    [HttpPost]
-    public async Task<ActionResult> AdminLogin([FromBody] LoginRequest loginRequest)
-    {
-        User? user = await _context.User.SingleOrDefaultAsync(u => u.Username == loginRequest.Username);
-        if (user is null)
-        {
-            return NotFound();
-        }
+    //[HttpPost]
+    //public async Task<ActionResult> AdminLogin([FromBody] LoginRequest loginRequest)
+    //{
+    //    User? user = await _context.User.SingleOrDefaultAsync(u => u.Username == loginRequest.Username);
+    //    if (user is null)
+    //    {
+    //        return NotFound();
+    //    }
 
-        if (user.Role != UserRole.Admin || !PasswordService.CompareHash(loginRequest.Password, user.Password))
-            return Unauthorized("Invalid password");
-        HttpContext.Response.Headers.Add(new("Authorization", _tokenService.GenerateToken(user.Id, user.Role, DateTime.UtcNow)));
-        return Redirect("/");
-    }
+    //    if (user.Role != UserRole.Admin || !PasswordService.CompareHash(loginRequest.Password, user.Password))
+    //        return Unauthorized("Invalid password");
+    //    HttpContext.Response.Headers.Add(new("Authorization", _tokenService.GenerateToken(user.Id, user.Role, DateTime.UtcNow)));
+    //    return Redirect("/");
+    //}
 
     [HttpPost]
     public async Task<ActionResult<UserAuthResponse>> Login([FromBody] LoginRequest loginRequest)

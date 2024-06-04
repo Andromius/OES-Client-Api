@@ -6,10 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>3620ce98-cade-42d0-a1eb-d95400bc4e4a</UserSecretsId>
 	<PublishProfile>DefaultContainer</PublishProfile>
-	<!--<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:7.0</ContainerBaseImage>-->
 	<ContainerRegistry>registry.hub.docker.com</ContainerRegistry>
 	<ContainerRepository>andromius/oesappapi</ContainerRepository>
-	<ContainerImageTags>x64;latest</ContainerImageTags>
+	<ContainerImageTags>x64-2.0;latest</ContainerImageTags>
 	<InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
@@ -17,6 +16,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.3">
@@ -25,7 +25,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
-    <PackageReference Include="Soenneker.Utils.String.CosineSimilarity" Version="2.1.280" />
+    <PackageReference Include="Soenneker.Utils.String.CosineSimilarity" Version="2.1.288" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <ContainerPort Include="80" Type="tcp" />
 	<ContainerPort Include="443" Type="tcp" />

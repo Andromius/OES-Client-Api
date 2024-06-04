@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace Domain.Entities.UserQuizzes;
 public class UserQuiz : CourseItem
 {
+    public List<UserQuizUserPermission> UserPermissions { get; set; } = [];
     public UserQuiz()
     {
     }

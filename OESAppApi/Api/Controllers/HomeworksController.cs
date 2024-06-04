@@ -4,6 +4,7 @@ using Domain.Entities.Users;
 using Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
@@ -27,16 +28,19 @@ public class HomeworksController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly OESAppApiDbContext _context;
     private readonly ICourseRepository _courseRepository;
-    public HomeworksController(ITokenService tokenService, OESAppApiDbContext context, ICourseRepository courseRepository)
-    {
-        _tokenService = tokenService;
-        _context = context;
-        _courseRepository = courseRepository;
-    }
+    private readonly ILogger<HomeworksController> _logger;
+	public HomeworksController(ITokenService tokenService, OESAppApiDbContext context, ICourseRepository courseRepository, ILogger<HomeworksController> logger)
+	{
+		_tokenService = tokenService;
+		_context = context;
+		_courseRepository = courseRepository;
+		_logger = logger;
+	}
 
-    [HttpPost("{id}/submissions")]
+	[HttpPost("{id}/submissions")]
     [DisableRequestSizeLimit]
-    public async Task<ActionResult> Submit(int id, [FromForm] HomeworkSubmissionRequest request, [FromServices] IHomeworkSubmissionAttachmentRepository repository)
+	[RequestTimeout(policyName: "Upload")]
+	public async Task<ActionResult> Submit(int id, [FromForm] HomeworkSubmissionRequest request, [FromServices] IHomeworkSubmissionAttachmentRepository repository)
     {
         HomeworkSubmission newSubmission = new(
             _tokenService.GetUserId(Request.ExtractToken()),
@@ -45,22 +49,22 @@ public class HomeworksController : ControllerBase
 
         var submissionEntity = _context.Add(newSubmission);
         await _context.SaveChangesAsync();
-
-        if (request.FormFiles is not null)
+        try
         {
-            foreach (var file in request.FormFiles)
-            {
-                await repository.SaveAttachmentAsync(file, submissionEntity.Entity.Id);
-            }
+			if (request.FormFiles is not null)
+			{
+				foreach (var file in request.FormFiles)
+				{
+					_logger.LogInformation($"{file.FileName}");
+					await repository.SaveAttachmentAsync(file, submissionEntity.Entity.Id);
+				}
+			}
+		}
+        catch (Exception e)
+        {
+            _logger.LogInformation(e.Message);
         }
-        //if (Request.HasFormContentType)
-        //{
-        //    var contentTypeHeader = MediaTypeHeaderValue.Parse(Request.ContentType!);
-        //    contentTypeHeader.Parameters
-        //}
-        //MultipartReader reader = new(".GetBoundary()", Request.Body);
-        //MultipartSection? section = await reader.ReadNextSectionAsync();
-        //section.Body
+        _logger.LogInformation("FINISHED");
         return NoContent();
     }
 
@@ -88,7 +92,7 @@ public class HomeworksController : ControllerBase
         var result = await _courseRepository.GetUserCourseRoleAsync(courseId.Value, userId);
 
         if (!result.IsSuccess)
-            return Forbid();
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
         
         HomeworkSubmission? submission = await _context.HomeworkSubmission
             .SingleOrDefaultAsync(s => s.HomeworkId == id && s.Id == submissionId);
@@ -103,16 +107,9 @@ public class HomeworksController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("img")]
-    [AllowAnonymous]
-    public async Task<ActionResult> GetImagePrivate()
-    {
-        HomeworkSubmission homeworkSubmission = await _context.HomeworkSubmission.Include(h => h.Attachments).OrderByDescending(h => h.Id).LastAsync();
-        return Ok(homeworkSubmission.Attachments.First().File);
-    }
-
     [HttpPost]
-    public async Task<ActionResult<HomeworkResponse>> Post([FromQuery] int courseId, [FromBody] HomeworkRequest request)
+	[Authorize(Policy = "TeacherOrAdminPolicy")]
+	public async Task<ActionResult<HomeworkResponse>> Post([FromQuery] int courseId, [FromBody] HomeworkRequest request)
     {
         Homework h = request.ToHomework(courseId, _tokenService.GetUserId(Request.ExtractToken()));
         var newHomework = _context.Add(h);
@@ -132,8 +129,9 @@ public class HomeworksController : ControllerBase
         return h is not null ? Ok(h) : NotFound();
     }
 
-    [HttpPut("{id}")]
-    public async Task<ActionResult> Put(int id, [FromBody] HomeworkRequest request)
+	[HttpPut("{id}")]
+	[Authorize(Policy = "TeacherOrAdminPolicy")]
+	public async Task<ActionResult> Put(int id, [FromBody] HomeworkRequest request)
     {
         Homework? h = await _context.Homework.SingleOrDefaultAsync(h => h.Id == id); 
         if (h is null)

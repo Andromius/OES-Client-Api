@@ -66,7 +66,7 @@ public class CoursesController : ControllerBase
                 .ToListAsync();
         }
 
-        PagedList<CourseResponse> response = new (pageSize.Value, page.Value, count, courses);
+        PagedList<CourseResponse> response = new(pageSize.Value, page.Value, count, courses);
 
         return Ok(response);
     }
@@ -81,8 +81,14 @@ public class CoursesController : ControllerBase
             .Select(item => item.ToItemResponse())
             .ToListAsync();
 
+        List<int> userQuizIds = await _context.UserQuizUserPermission
+            .Where(p => p.UserId == userId)
+            .Select(p => p.UserQuizId)
+            .ToListAsync();
+
         List<CourseItemResponse> userQuizResponse = await _context.CourseItem
-            .Where(item => item.CourseId == id && item.UserId == userId && item.CourseItemType == ECourseItemType.UserQuiz)
+            .Where(item => item.CourseId == id && item.CourseItemType == ECourseItemType.UserQuiz &&
+                (item.UserId == userId || userQuizIds.Contains(item.Id)))
             .Select(item => item.ToItemResponse())
             .ToListAsync();
 
@@ -97,21 +103,23 @@ public class CoursesController : ControllerBase
         return c.ToResponse();
     }
 
-    // POST api/<CourseController>
-    [HttpPost]
+	// POST api/<CourseController>
+	[Authorize(Policy = "TeacherOrAdminPolicy")]
+	[HttpPost]
     public async Task<ActionResult<CourseResponse>> Post([FromBody] CourseRequest request)
     {
         Course c = request.ToCourse(_courseCodeGenerationService);
-        request.TeacherIds.ForEach(tId => c.Users.Add(new (tId, CourseEnum.Teacher)));
-        request.AttendantIds.ForEach(sId => c.Users.Add(new (sId, CourseEnum.Attendant)));
-        
+        request.TeacherIds.ForEach(tId => c.Users.Add(new(tId, CourseEnum.Teacher)));
+        request.AttendantIds.ForEach(sId => c.Users.Add(new(sId, CourseEnum.Attendant)));
+
         var newCourse = _context.Course.Add(c);
         await _context.SaveChangesAsync();
 
-        return Created($"api/courses/{newCourse.Entity.Id}", newCourse.Entity.ToResponse());   
+        return Created($"api/courses/{newCourse.Entity.Id}", newCourse.Entity.ToResponse());
     }
 
     // PUT api/<CourseController>/5
+    [Authorize(Policy = "TeacherOrAdminPolicy")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] CourseRequest request)
     {
@@ -125,8 +133,9 @@ public class CoursesController : ControllerBase
         return NoContent();
     }
 
-    // DELETE api/<CourseController>/5
-    [HttpDelete("{id}")]
+	// DELETE api/<CourseController>/5
+	[Authorize(Policy = "TeacherOrAdminPolicy")]
+	[HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         await _context.Course.Where(c => c.Id == id).ExecuteDeleteAsync();
@@ -153,7 +162,7 @@ public class CoursesController : ControllerBase
         return await _context.Course.Where(c => c.Id == id).Select(c => c.Code).SingleAsync();
     }
 
-    [HttpPut("{code}/join")]
+	[HttpPut("{code}/join")]
     public async Task<IActionResult> JoinCourse(string code)
     {
         int userId = _tokenService.GetUserId(Request.ExtractToken());
@@ -175,7 +184,6 @@ public class CoursesController : ControllerBase
     }
 
     [HttpGet("{id}/users")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> GetUsers(int id, [FromQuery] List<CourseEnum> userCourseRoles, [FromQuery] bool withRole = true)
     {
         if (userCourseRoles.Count == 0)

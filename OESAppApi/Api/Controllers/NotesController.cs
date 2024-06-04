@@ -2,11 +2,13 @@
 using Domain.Entities.Notes;
 using Domain.Entities.Tests;
 using Domain.Entities.Users;
+using Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OESAppApi.Extensions;
 using Persistence;
 
 namespace OESAppApi.Api.Controllers;
@@ -15,18 +17,30 @@ namespace OESAppApi.Api.Controllers;
 public class NotesController : ControllerBase
 {
     private readonly OESAppApiDbContext _context;
+    private readonly ICourseRepository _courseRepository;
+    private readonly ITokenService _tokenService;
 
-    public NotesController(OESAppApiDbContext context)
-    {
-        _context = context;
-    }
+	public NotesController(OESAppApiDbContext context, ICourseRepository courseRepository, ITokenService tokenService)
+	{
+		_context = context;
+		_courseRepository = courseRepository;
+		_tokenService = tokenService;
+	}
 
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "StudentOrTeacherOrAdminPolicy")]
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "StudentOrTeacherOrAdminPolicy")]
     [HttpGet("{id}")]
     public async Task<ActionResult<NoteResponse>> Get(int id)
     {
-        NoteResponse? response = await _context.Note.Where(n => n.Id == id).Select(n => n.ToResponse()).SingleOrDefaultAsync();
-        return response is not null ? Ok(response) : NotFound();
+        int userId = _tokenService.GetUserId(Request.ExtractToken());
+        Note? note = await _context.Note
+            .Where(n => n.Id == id)
+            .SingleOrDefaultAsync();
+        if (note is null)
+            return NotFound();
+        var result = await _courseRepository.GetUserCourseRoleAsync(note.CourseId, userId);
+        if (!result.IsSuccess)
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
+		return Ok(note.ToResponse());
     }
 
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "TeacherOrAdminPolicy")]

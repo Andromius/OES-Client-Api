@@ -34,10 +34,13 @@ public class HomeworkSubmissionAttachmentRepository : IHomeworkSubmissionAttachm
         await OpenConnection();
 
         using var cmd = new NpgsqlCommand(INSERT_FILE_SQL, _connection);
+        cmd.CommandTimeout = TimeSpan.FromMinutes(30).Seconds;
         cmd.Parameters.AddWithValue("@name", file.FileName);
         cmd.Parameters.AddWithValue("@subId", submissionId);
         cmd.Parameters.AddWithValue("@file", file.OpenReadStream());
         await cmd.ExecuteNonQueryAsync();
+        
+        await _connection.CloseAsync();
     }
 
     public async Task<Stream?> GetAttachmentDataAsync(int id)

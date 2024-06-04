@@ -17,7 +17,6 @@ using Microsoft.IdentityModel.Tokens;
 using OESAppApi.Api.Hubs;
 using OESAppApi.Api.Swagger;
 using OESAppApi.AuthenticationHandler;
-using OESAppApi.Data;
 using Persistence;
 using Persistence.Repositories;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -28,6 +27,7 @@ using Domain.Entities.Courses;
 using Newtonsoft.Json.Serialization;
 using System.Text.Json;
 using OESAppApi.Api.Services;
+using Microsoft.AspNetCore.Http.Timeouts;
 
 namespace OESAppApi;
 
@@ -39,14 +39,17 @@ public class Program
         builder.Logging.ClearProviders();
         builder.Logging.SetMinimumLevel(LogLevel.Information);
         builder.Logging.AddConsole();
-        builder.Services.AddDbContextPool<OESAppApiDbContext>(options =>
+		builder.Services.AddRequestTimeouts(options => {
+            options.DefaultPolicy = new RequestTimeoutPolicy { Timeout = TimeSpan.FromMinutes(1) };
+			options.AddPolicy("Upload", new RequestTimeoutPolicy { Timeout = TimeSpan.FromMinutes(30) });
+		});
+		builder.Services.AddDbContextPool<OESAppApiDbContext>(options =>
         {
             options.UseNpgsql(builder.Configuration["DATABASE_CONNECTION_STRING"], b => b.MigrationsAssembly("OESAppApi"));
             options.LogTo(Console.WriteLine, LogLevel.Warning);
         }, 70);
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
-        builder.Services.AddSingleton<WeatherForecastService>();
         builder.Services.AddSingleton<ITokenService, TokenService>();
         builder.Services.AddSingleton<CourseCodeGenerationService>();
         builder.Services.AddScoped<IHomeworkSubmissionAttachmentRepository, HomeworkSubmissionAttachmentRepository>(provider =>
@@ -80,7 +83,6 @@ public class Program
         {
             options.DetailedErrors = true;
         });
-        builder.Services.AddScoped<TokenProvider>();
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminPolicy", policy =>
@@ -99,7 +101,7 @@ public class Program
             });
         });
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers().AddNewtonsoftJson();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
@@ -139,20 +141,19 @@ public class Program
         app.UseCors("AllowAll");
         app.UseStaticFiles();
         app.UseRouting();
-
-        app.UseAuthentication();
+		app.UseRequestTimeouts();
+		app.UseAuthentication();
         app.UseAuthorization();
 
 
         app.MapHub<QuizHub>("/signalr/quiz");
-
+        app.MapGet("/api", () => Results.StatusCode(418));
+        app.MapControllers();
         app.MapBlazorHub(options => 
         {
             options.CloseOnAuthenticationExpiration = true;
         });
         app.MapFallbackToPage("/_Host");
-        app.MapControllers();
-        app.MapGet("/api", () => Results.StatusCode(418));
         app.Use(async (context, next) =>
         {
             Console.WriteLine(context.Request.Path);

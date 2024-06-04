@@ -1,3 +1,5 @@
 start dotnet publish --os linux --arch x64
+@REM -p:SDK_CONTAINER_REGISTRY_PARALLEL_UPLOAD=false;SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD=true;SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD_SIZE_BYTES=1024
 timeout /t 5
-start dotnet publish --os linux --arch arm64 -p:ContainerImageTags=arm64
+start dotnet publish --os linux --arch arm64 -p:ContainerImageTags=arm64-2.0
+@REM ;SDK_CONTAINER_REGISTRY_PARALLEL_UPLOAD=false;SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD=true;SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD_SIZE_BYTES=1024

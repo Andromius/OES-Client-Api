@@ -44,6 +44,7 @@ public class OESAppApiDbContext : DbContext
     public DbSet<UserQuiz> UserQuiz { get; set; }
     public DbSet<AnswerSimilarity> AnswerSimilarity { get; set; }
     public DbSet<CentralConfig> CentralConfig { get; set; }
+    public DbSet<UserQuizUserPermission> UserQuizUserPermission { get; set; }
     public OESAppApiDbContext() { }
     public OESAppApiDbContext(DbContextOptions options) : base(options) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)

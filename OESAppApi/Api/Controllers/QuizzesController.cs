@@ -65,7 +65,7 @@ public class QuizzesController : ControllerBase
         var result = await _courseRepository.GetUserCourseRoleAsync(courseId, userId);
 
         if (!result.IsSuccess || result.Value is CourseEnum.Attendant)
-            return Forbid();
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
 
         Quiz q = request.ToQuiz(courseId, _tokenService.GetUserId(Request.ExtractToken()));
         var newQuiz = _context.Add(q);

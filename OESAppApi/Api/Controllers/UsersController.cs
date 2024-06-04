@@ -179,7 +179,7 @@ public class UsersController : ControllerBase
 
         var result = await _courseRepository.GetUserCourseRoleAsync(test.CourseId, _tokenService.GetUserId(Request.ExtractToken()));
         if (!result.IsSuccess || result.Value is CourseEnum.Attendant)
-            return Forbid();
+            return Forbid(JwtBearerDefaults.AuthenticationScheme);
 
         List<TestSubmissionResponse> response = await _context.TestSubmission
             .Where(s => s.TestId == testId && s.UserId == id)
