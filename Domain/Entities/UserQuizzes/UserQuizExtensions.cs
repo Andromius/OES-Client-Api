@@ -17,6 +17,7 @@ public static class UserQuizExtensions
         quiz.Created,
         quiz.UserId,
         quiz.IsVisible,
+        quiz.ShouldShuffleQuestions,
         quiz.Questions.Select(q => q.ToResponse(courseParticipant, true)).ToList());
 
     public static UserQuiz ToUserQuiz(this UserQuizRequest request, int courseId, int userId) => new()
@@ -26,6 +27,7 @@ public static class UserQuizExtensions
         IsVisible = request.IsVisible,
         UserId = userId,
         CourseId = courseId,
+        ShouldShuffleQuestions = request.ShouldShuffleQuestions,
         Questions = request.Questions.Select(q => q.ToQuestion()).ToList()
     };
 }

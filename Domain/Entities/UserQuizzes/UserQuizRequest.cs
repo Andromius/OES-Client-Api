@@ -11,4 +11,5 @@ public record UserQuizRequest(
     DateTime Created,
     bool IsVisible,
     int CreatedById,
+    bool ShouldShuffleQuestions,
     List<QuestionRequest> Questions);

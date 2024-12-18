@@ -10,6 +10,7 @@ namespace Domain.Entities.UserQuizzes;
 public class UserQuiz : CourseItem
 {
     public List<UserQuizUserPermission> UserPermissions { get; set; } = [];
+    public bool ShouldShuffleQuestions { get; set;} = false;
     public UserQuiz()
     {
     }
