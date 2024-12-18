@@ -92,6 +92,7 @@ public class UserQuizzesController : ControllerBase
         await _context.Question.Where(q => q.ItemId == id).ExecuteDeleteAsync();
         q.Questions = value.Questions.ToQuestionList();
         q.Name = value.Name;
+        q.ShouldShuffleQuestions = value.ShouldShuffleQuestions;
 
         _context.UserQuiz.Update(q);
         await _context.SaveChangesAsync();
